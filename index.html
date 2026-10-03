@@ -151,6 +151,34 @@
     drop-shadow(0 0 5px rgba(226,159,77,.20))!important;
 }
 </style>
+
+<style id="v428-iphone-composite-fix">
+/* PLAYER: larger ADV standing sprite, anchored behind the dialogue window */
+.stage.playerScene .charHero{
+  inset:0 0 12%!important;
+  align-items:flex-end!important;
+  overflow:hidden!important;
+}
+.stage.playerScene .charHero img{
+  height:114%!important;
+  width:auto!important;
+  max-width:none!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+  transform:translateY(7%)!important;
+  filter:sepia(.035) saturate(.94) brightness(.91)
+    drop-shadow(0 15px 14px rgba(0,0,0,.72))
+    drop-shadow(0 0 4px rgba(226,159,77,.16))!important;
+}
+.stage.playerScene .talk{z-index:12!important}
+
+/* Reserve enough room for the dialogue box on short iPhone viewports. */
+.groupScene{
+  inset:2.2% 3.2% 29%!important;
+  gap:5px!important;
+}
+.groupScene .g img{object-position:center 20%!important}
+</style>
 </head><body><div class="app"><button class="menu" onclick="gameMenu()">☰ MENU</button>
 <section id="adv" class="screen on"><div class="top"><span>THE AUCTION GAME</span><span id="advMoney" class="money">200万円</span></div><div class="body"><div class="stage"><div id="charHero" class="charHero"><div id="playerTag" class="playerTag">PLAYER / YOU</div><img id="charImg"></div><div id="groupScene" class="groupScene hidden"></div><div id="reveal" class="reveal hidden"></div><div id="react" class="react hidden"></div><div id="secret" class="secret hidden"></div><div class="talk"><span id="speaker" class="speaker">司会</span><span id="role" class="role">AUCTION</span><div id="dialog" class="dialog"></div><button id="next" class="next" onclick="advance()">次へ ▶</button></div></div></div></section>
 <section id="auction" class="screen"><div class="top"><span id="round">ROUND 1 / 5</span><span id="money" class="money">200万円</span></div><div class="body auction"><div class="itemBox"><div id="miniArt" class="miniArt"></div><div class="itemData"><span class="muted" style="font-size:10px">出品アイテム</span><h2 id="itemName"></h2><div class="priceGrid"><div>想定価格<b id="est"></b></div><div>現在価格<b id="cur"></b></div></div></div></div><div id="faces" class="faces"></div><div id="clue" class="clue"></div><div class="actions"><button class="btn" onclick="observe()">👁 観察</button><button class="btn" onclick="question()">💬 質問</button><button class="btn" onclick="eavesdrop()">🎧 盗聴</button><button class="btn" onclick="bluff()">🎭 ブラフ</button><button class="btn bid" onclick="bidPrompt()">🔨 入札</button><button class="btn fold" onclick="fold()">× 降りる</button></div><div class="hint">キャラをタップすると現在の表情・様子を確認できます</div></div></section></div><div id="shade" class="shade"><div id="modal" class="modal"></div></div>
