@@ -235,6 +235,21 @@
 .stage.playerScene .talk{z-index:20!important}
 .stage.playerScene #playerTag{display:none!important}
 </style>
+
+<style id="v431-player-fullscreen-bg">
+/* v4.31: PLAYER CG is rendered as the ADV stage background, not inside charHero */
+.stage.playerScene{
+  background-size:cover!important;
+  background-position:center 44%!important;
+  background-repeat:no-repeat!important;
+}
+.stage.playerScene .charHero{
+  display:none!important;
+}
+.stage.playerScene .talk{
+  z-index:20!important;
+}
+</style>
 </head><body><div class="app"><button class="menu" onclick="gameMenu()">☰ MENU</button>
 <section id="adv" class="screen on"><div class="top"><span>THE AUCTION GAME</span><span id="advMoney" class="money">200万円</span></div><div class="body"><div class="stage"><div id="charHero" class="charHero"><div id="playerTag" class="playerTag">PLAYER / YOU</div><img id="charImg"></div><div id="groupScene" class="groupScene hidden"></div><div id="reveal" class="reveal hidden"></div><div id="react" class="react hidden"></div><div id="secret" class="secret hidden"></div><div class="talk"><span id="speaker" class="speaker">司会</span><span id="role" class="role">AUCTION</span><div id="dialog" class="dialog"></div><button id="next" class="next" onclick="advance()">次へ ▶</button></div></div></div></section>
 <section id="auction" class="screen"><div class="top"><span id="round">ROUND 1 / 5</span><span id="money" class="money">200万円</span></div><div class="body auction"><div class="itemBox"><div id="miniArt" class="miniArt"></div><div class="itemData"><span class="muted" style="font-size:10px">出品アイテム</span><h2 id="itemName"></h2><div class="priceGrid"><div>想定価格<b id="est"></b></div><div>現在価格<b id="cur"></b></div></div></div></div><div id="faces" class="faces"></div><div id="clue" class="clue"></div><div class="actions"><button class="btn" onclick="observe()">👁 観察</button><button class="btn" onclick="question()">💬 質問</button><button class="btn" onclick="eavesdrop()">🎧 盗聴</button><button class="btn" onclick="bluff()">🎭 ブラフ</button><button class="btn bid" onclick="bidPrompt()">🔨 入札</button><button class="btn fold" onclick="fold()">× 降りる</button></div><div class="hint">キャラをタップすると現在の表情・様子を確認できます</div></div></section></div><div id="shade" class="shade"><div id="modal" class="modal"></div></div>
@@ -259,7 +274,7 @@ function rr(a,b){return Math.floor(Math.random()*(b-a+1))+a}function pick(a){ret
 function fresh(){return{round:1,money:{P:200,A:200,B:200,C:200,D:200},active:{P:true,A:true,B:true,C:true,D:true},current:0,highest:null,eaves:false,history:[],aggr:0,item:null,npcSecrets:{}}}
 let S=JSON.parse(localStorage.getItem('auctionV48')||'null')||fresh(),Q=[];
 function makeItem(){let ranges=[[20,95],[35,170],[30,240],[0,350],[70,500]],R=ranges[S.round-1],lo=five(rr(R[0],Math.max(R[0]+10,Math.floor(R[1]*.42)))),hi=five(rr(Math.max(lo+25,Math.floor(R[1]*.62)),R[1]));if(hi<=lo)hi=lo+25;let item={...pick(ITEMS),min:lo,max:hi};item.value=rr(lo,hi);item.good=pick(TRAITS);item.bad=pick(TRAITS.filter(x=>x!==item.good));item.playerSecret=(Math.random()<.5?`「${item.good}」があれば、高値の可能性が高い。`:`「${item.bad}」が強ければ、低値の可能性が高い。`);S.npcSecrets={};for(const k of 'ABCD'){let t=pick(TRAITS);S.npcSecrets[k]=Math.random()<.55?`「${t}」を重視している。`:`「${t}」は価格判断の罠かもしれない。`}return item}
-function save(){localStorage.setItem('auctionV48',JSON.stringify(S))}function screen(x){adv.classList.toggle('on',x==='adv');auction.classList.toggle('on',x==='auction')}function hide(){reveal.classList.add('hidden');react.classList.add('hidden');secret.classList.add('hidden');groupScene.classList.add('hidden');charHero.style.display='flex';document.querySelector('.stage').classList.remove('playerScene')}
+function save(){localStorage.setItem('auctionV48',JSON.stringify(S))}function screen(x){adv.classList.toggle('on',x==='adv');auction.classList.toggle('on',x==='auction')}function hide(){reveal.classList.add('hidden');react.classList.add('hidden');secret.classList.add('hidden');groupScene.classList.add('hidden');charHero.style.display='flex';document.querySelector('.stage').classList.remove('playerScene');document.querySelector('.stage').style.backgroundImage=''}
 function art(type){
  const motifs={
  watch:`<g transform="translate(0,-2)"><path d="M48 24v-8h24v8"/><rect x="50" y="13" width="20" height="8" rx="3"/><circle cx="60" cy="63" r="37"/><circle cx="60" cy="63" r="30"/><circle cx="60" cy="63" r="23"/><path d="M60 63V44M60 63l16 10"/><path d="M60 33v6M60 87v6M30 63h6M84 63h6M39 42l5 5M76 79l5 5M81 42l-5 5M44 79l-5 5"/><path d="M37 29c-12 2-21 9-27 20M83 29c12 2 21 9 27 20"/></g>`,
@@ -283,7 +298,7 @@ function showReveal(){hide();charHero.style.display='none';reveal.classList.remo
 function showReactions(){hide();charHero.style.display='none';react.classList.remove('hidden');react.innerHTML='ABCD'.split('').map(k=>`<div class="reactRow"><div class="reactPortrait"><img src="${PIC[k]}"></div><div class="reactTxt"><b class="${k}">${k}</b><span class="muted">${ROLE[k]}</span><br>${REACT[k]}</div></div>`).join('');setTalk('','','四人の視線が、品物へ集まる。','秘密情報を受け取る ▶')}
 function showSecret(){hide();charHero.style.display='none';secret.classList.remove('hidden');secret.innerHTML=`<div class="paper"><h2>◆ 秘密情報 ◆</h2><div class="hand">PLAYERへ<br><br><span class="underline">${S.item.playerSecret}</span></div><small>※この情報は他のプレイヤーには知られていない。<br>※A・B・C・Dにも、それぞれ別の秘密情報が1つだけ配られている。</small></div>`;setTalk('秘密情報','PRIVATE INFORMATION','他の四人にも別々の情報が渡された。内容は見えない。','オークション開始へ ▶')}
 function showGroup(x){hide();charHero.style.display='none';groupScene.classList.remove('hidden');groupScene.innerHTML=`<div class="g ga"><img src="${PIC.A}" alt=""></div><div class="g gb"><img src="${PIC.B}" alt=""></div><div class="g gc"><img src="${PIC.C}" alt=""></div><div class="g gd"><img src="${PIC.D}" alt=""></div>`;setTalk('','',x.txt,'会話を進める ▶')}
-function showSay(x){hide();const tag=document.getElementById('playerTag');const stage=document.querySelector('.stage');tag.classList.remove('show');if(x.who){charHero.style.display='flex';charImg.src=ADV[x.who];if(x.who==='P'){tag.classList.add('show');stage.classList.add('playerScene')}}else{charHero.style.display='none'};setTalk(x.sp||'',x.role||(x.who?ROLE[x.who]:'')||'',x.txt,Q.length?'会話を進める ▶':'行動選択へ ▶')}
+function showSay(x){hide();const tag=document.getElementById('playerTag');const stage=document.querySelector('.stage');tag.classList.remove('show');if(x.who){charHero.style.display='flex';charImg.src=ADV[x.who];if(x.who==='P'){tag.classList.add('show');stage.classList.add('playerScene');stage.style.backgroundImage='url("'+ADV.P+'")';charHero.style.display='none'}}else{charHero.style.display='none'};setTalk(x.sp||'',x.role||(x.who?ROLE[x.who]:'')||'',x.txt,Q.length?'会話を進める ▶':'行動選択へ ▶')}
 function advance(){if(!Q.length){render();screen('auction');return}let x=Q.shift();if(x.k==='reactions')showReactions();else if(x.k==='secret')showSecret();else if(x.k==='say')showSay(x);else if(x.k==='group')showGroup(x);else{render();screen('auction')}}
 function mood(k){if(!S.active[k])return'静観';if(S.highest===k)return k==='A'?'集中':k==='B'?'興奮':k==='C'?'微笑': '執着';let z=S.current/(S.item.max||1);return k==='A'?(z>.65?'警戒':'観察'):k==='B'?(z>.55?'焦り':'期待'):k==='C'?(z>.55?'含み笑い':'無表情'):(S.aggr>1?'苛立ち':'凝視')}
 function render(){round.textContent=`ROUND ${S.round} / 5`;money.textContent=S.money.P+'万円';advMoney.textContent=S.money.P+'万円';miniArt.innerHTML=productVisual();itemName.textContent=S.item.name;est.textContent=`${S.item.min}〜${S.item.max}万円`;cur.textContent=S.current?S.current+'万円':'開始前';clue.textContent='🔒 '+S.item.playerSecret;faces.innerHTML='ABCD'.split('').map(k=>`<button class="face" data-rival="${k}" onclick="inspect('${k}')"><img src="${PIC[k]}"><span class="mood">${mood(k)}</span><span class="foot"><b>${k}</b><span>${S.money[k]}万</span></span></button>`).join('');save()}
