@@ -1,5 +1,5 @@
 <!-- v4.9: corrected package root; based on latest v4.7 inner build -->
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>THE AUCTION GAME v4.25</title><style>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>THE AUCTION GAME — 完成版候補</title><style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#040914;color:#f7f2eb;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.app{height:100dvh;max-width:520px;margin:auto;background:radial-gradient(circle at 50% 0,#172238,#07101e 55%,#040914);overflow:hidden;position:relative}.top{height:7.2%;min-height:52px;display:flex;align-items:end;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 8px) 15px 9px;border-bottom:1px solid #41506a;font-family:Georgia,serif;letter-spacing:.1em;position:relative;z-index:20}.money{padding-right:62px}.menu{position:absolute;right:8px;top:calc(env(safe-area-inset-top) + 7px);z-index:50;border:1px solid #526d8b;background:#081322e8;color:#eee;border-radius:10px;padding:7px 10px}.screen{display:none;height:100%}.screen.on{display:flex;flex-direction:column}.body{flex:1;min-height:0;position:relative;overflow:hidden}.btn{border:1px solid #456f91;background:linear-gradient(#17304a,#0b192b);color:#fff;border-radius:10px;font-weight:800}.gold{color:#f0c665}.muted{color:#9cabc0}
 /* ADV */.stage{height:100%;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 5%,#7a522f55 0 10%,transparent 33%),radial-gradient(ellipse at 15% 22%,#d7a34d22 0 4%,transparent 17%),radial-gradient(ellipse at 85% 22%,#d7a34d22 0 4%,transparent 17%),linear-gradient(180deg,#171a24 0,#0a1019 50%,#050912 100%)}.stage:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0008 0 7%,transparent 7% 23%,#b88b4d18 23% 24%,transparent 24% 48%,#b88b4d18 48% 49%,transparent 49% 76%,#b88b4d18 76% 77%,transparent 77% 93%,#0008 93%),linear-gradient(0deg,#5b3c1d20 0 2px,transparent 2px 100%);box-shadow:inset 0 -100px 120px #0008}.stage:after{content:"✦        ✦";white-space:pre;position:absolute;left:0;right:0;top:2%;text-align:center;letter-spacing:9rem;color:#e6bd6d55;font-size:28px;text-shadow:0 0 18px #e0a84c;pointer-events:none}.charHero{position:absolute;inset:1% 2% 16%;display:flex;justify-content:center;align-items:flex-end;overflow:hidden}.charHero img{height:100%;width:auto;max-width:76%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 18px 28px #000)}.talk{position:absolute;left:3%;right:3%;bottom:2.5%;min-height:19%;z-index:8;border:1px solid #8c5bb2;border-radius:14px;background:#020713eF;padding:13px 14px 44px;box-shadow:0 10px 30px #0008}.speaker{font-size:18px;font-weight:900;color:#c992ff}.speaker:empty+.role{display:none}.role{font-size:11px;color:#a69bb1;margin-left:8px}.dialog{font-size:14px;line-height:1.6;margin-top:7px;white-space:pre-line}.next{position:absolute;right:12px;bottom:9px;border:0;background:none;color:#f0e1ff;font-weight:900;font-size:14px}
 /* item reveal */.reveal{position:absolute;inset:2.5% 3.5% 27%;z-index:7;border:1px solid #a77a31;border-radius:12px;background:#091321;overflow:hidden;padding:9px;display:flex;flex-direction:column}.reveal.hidden,.react.hidden,.secret.hidden{display:none}.productArt{flex:1;min-height:0;border-radius:8px;overflow:hidden;border:1px solid #78572d;background:radial-gradient(circle,#4a301c,#080c13 68%);position:relative}.productArt svg{width:100%;height:100%;display:block}.productArt img{width:100%;height:100%;object-fit:cover;object-position:center 55%;display:block}.revealMeta{text-align:center;padding:6px 4px 2px}.lot{font-size:10px;letter-spacing:.22em;color:#a7b6c9}.reveal h1{font-size:26px;margin:2px 0}.estimate{display:inline-block;border:1px solid #816b4a;border-radius:8px;padding:5px 15px;font-size:18px;font-weight:900;color:#f0c665}.desc{font-size:11px;line-height:1.45;color:#d3d7de;margin-top:5px}
@@ -60,6 +60,9 @@
 .groupScene .gp{height:46%!important;border-color:#9c65d3!important;background:radial-gradient(circle at 50% 28%,rgba(151,83,206,.18),#07101a 68%)!important}
 .groupScene .g img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center 22%!important}
 .groupScene .gp img{object-fit:contain!important;object-position:center bottom!important;padding:3px!important}
+
+/* Extra mobile action rows and status */
+.actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.actions button{height:43px;min-height:40px;font-size:12px}.auction{gap:5px}.itemBox{min-height:125px;height:23%}.faces{min-height:70px;height:13%}.clue{font-size:10px;padding:5px 8px}#auExtra{flex-shrink:0}@media(max-height:700px){.actions button{height:38px;min-height:36px}.itemBox{height:22%;min-height:108px}.faces{min-height:60px;height:12%}}
 </style>
 <style id="v424-player-fix">
 /* v4.24: PLAYER intro only. Keep accepted secret/auction screens untouched. */
@@ -247,5 +250,93 @@ function showHistory(){modal.innerHTML='<h2>入札履歴</h2><div class="history
 function openM(h){modal.innerHTML=h;shade.classList.add('show')}function closeM(){shade.classList.remove('show')}
 function gameMenu(){openM('<div class="menuBg"><h2>ゲームメニュー</h2><button class="btn" onclick="closeM()">続きから</button><button class="btn" onclick="newGame()">↻ 新しく始める</button><button class="btn" onclick="showHistory()">入札履歴</button></div>')}
 function newGame(){localStorage.removeItem('auctionV48');S=fresh();closeM();startRound()}
-if(!S.item)startRound();else{render();screen('auction')}
+/* initialization deferred to updated game engine */
+</script><script>
+/* THE AUCTION GAME — playable five-round rules update. Retains v4.28 embedded art. */
+const AUKEY='auctionGameCompleteV1';
+const AU_NAMES=['銀月の懐中時計','蒼涙のペンダント','白鷺の陶磁器','黒曜の王冠','星冠の秘宝'];
+const AU_TYPES=['watch','gem','bowl','box','gem'];
+const AU_DESCS=['銀のケースに月の紋章が刻まれた古い懐中時計。','深い青色の宝石を銀細工で包んだペンダント。','白鷺の絵付けが残る古い陶磁器。','黒い宝石を配した、由来不明の王冠。','金細工と青い宝石が輝く、最後の出品物。'];
+const AU_FACTORS=[
+ ['文字盤の製造刻印','内部機構の保存状態','ケースの摩耗','部品の交換歴','製造年代の記録','銀細工の精密さ'],
+ ['宝石内部の青い光の層','家紋の刻印の精密さ','金属装飾の保存状態','宝石の透明度','宝石の研磨技術','由来を示す記録'],
+ ['底面の窯印','釉薬の年代','絵付けの筆致','高台の摩耗','焼成の特徴','修復の痕跡'],
+ ['宝石の留め具','王冠の製造刻印','金属の変色','宝石の透明度','伝来の記録','内側の装飾'],
+ ['主石の輝き','金細工の年代','留め具の精度','副石の状態','工房の記録','修復の痕跡']
+];
+const AU_SPEECH={A:['……この金額なら、まだ検討できますね。','私はここで降ります。これ以上は慎重になりたいので。','……評価を見直す必要がありそうですね。'],B:['よし、オレも行くぜ！','……くそっ、ここまでか。','マジかよ……そんな値段になるのか！'],C:['……それなら、ボクも。','もういいや。キミたちでどうぞ。','……そう来るんだ。'],D:['……上げる。','……降りる。','……まだ終わらない。']};
+const AU_RAND=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const AU_PICK=a=>a[AU_RAND(0,a.length-1)];
+const AU_SHUFFLE=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=AU_RAND(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const AU_CLAMP=(x,a,b)=>Math.max(a,Math.min(b,x));
+function auFresh(){return {round:1,money:{P:200,A:200,B:200,C:200,D:200},active:{P:true,A:true,B:true,C:true,D:true},current:0,highest:null,eaves:false,history:[],aggr:0,item:null,npcSecrets:{},records:[],used:{},known:[],bluffs:0,step:0,roundDone:false,started:false,withdrawals:0}}
+function auSave(){try{localStorage.setItem(AUKEY,JSON.stringify(S))}catch(e){}}
+function auMakeItem(){
+ let r=S.round-1,limits=[[50,150],[40,200],[20,180],[0,250],[50,500]][r],lo=limits[0],hi=limits[1];
+ let names=AU_FACTORS[r],truth=names.map(()=>AU_PICK([-1,-1,0,0,1,1]));
+ let fake=Math.random()<[.07,.15,.36,.42,.3][r];
+ let weights=AU_SHUFFLE([3,2,2,1,1,1]);
+ let quality=truth.reduce((sum,t,i)=>sum+t*weights[i],0);
+ let value=fake?lo+AU_RAND(0,Math.min(10,hi-lo)):AU_CLAMP(Math.round((lo+20+(hi-lo-20)*AU_CLAMP(.5+quality/15,.06,.95))/5)*5,lo+20,hi);
+ // Four value-factor secrets + one authenticity secret. Public four questions overlap exactly two of B/C/D's value-factor secrets.
+ let authenticity=AU_PICK(['A','B','C','D']); // Player starts with a value-factor secret.
+ let npc={};let remaining=[1,2,3,4,5];
+ npc.A=authenticity==='A'?{type:'auth',label:'鑑定印による真贋判定'}:{type:'factor',index:1};
+ let avail=remaining.filter(i=>i!==1);let ordered=AU_SHUFFLE(avail);
+ for(let k of 'BCD')npc[k]=k===authenticity?{type:'auth',label:'鑑定印による真贋判定'}:{type:'factor',index:ordered.shift()};
+ let valueNpc=Object.values(npc).filter(x=>x.type==='factor').map(x=>x.index);
+ let overlaps=AU_SHUFFLE(valueNpc).slice(0,2);
+ let publicIndices=AU_SHUFFLE([1,2,3,4,5].filter(i=>!overlaps.includes(i))).slice(0,2).concat(overlaps);
+ publicIndices=AU_SHUFFLE(publicIndices);
+ S.npcSecrets=npc;
+ return {name:AU_NAMES[r],type:AU_TYPES[r],desc:AU_DESCS[r],min:lo,max:hi,opening:Math.max(5,lo+5),value,fake,traits:names,truth,weights,publicIndices,playerSecret:`「${names[0]}」の状態を確かめると、価値を判断する手掛かりになる。`,good:names[0],bad:names[2]};
+}
+function auEnsure(){S.used??={};S.known??=[];S.records??=[];S.step??=0;S.bluffs??=0;S.roundDone??=false;S.started??=false;S.withdrawals??=0}
+function auStartRound(){if(S.round>5)return auFinal();S.active={P:true,A:true,B:true,C:true,D:true};S.current=0;S.highest=null;S.eaves=false;S.history=[];S.aggr=0;S.bluffs=0;S.step=0;S.roundDone=false;S.started=false;S.withdrawals=0;S.used={question:false,eaves:false};S.known=[0];S.item=auMakeItem();const dialogue=[
+ ['A「まずは現物を見てからですね。」','B「おっ、時計か！ いくらになるんだ？」','C「外見だけで決めるのは早いでしょ。」','D「……始まるな。」'],
+ ['A「細工の状態が気になりますね。」','B「青い石、綺麗だな……。」','C「綺麗だから高いとは限らないよ。」','D「……よく見ておく。」'],
+ ['A「窯印を確認したいですね。」','B「今度は慎重に行くぜ。」','C「偽物なら、どうなるかな。」','D「……判断が難しい。」'],
+ ['A「由来が確認できないのは気になります。」','B「0円の可能性もあるのか……。」','C「誰が賭けるんだろうね。」','D「……危険だな。」'],
+ ['A「最後の品ですね。判断を誤りたくありません。」','B「最後まで勝負だ！」','C「残金の計算は忘れないでね。」','D「……これで最後か。」']][S.round-1];'ABCD'.split('').forEach((k,i)=>REACT[k]=dialogue[i]);auSave();intro()}
+function auShow(message,title='競りの状況'){openM(`<h3>${title}</h3><p style="line-height:1.8;white-space:pre-line">${message}</p><button class="btn" onclick="closeM();auRefresh()">競りへ戻る</button>`)}
+function auRefresh(){if(S.roundDone)return;render();let el=document.getElementById('auExtra');if(!el){el=document.createElement('div');el.id='auExtra';el.style='font-size:11px;line-height:1.5;padding:5px 8px;border:1px solid #4a5d77;border-radius:8px;background:#091827';let actions=document.querySelector('.actions');actions.parentNode.insertBefore(el,actions)}
+ el.innerHTML=`<b style="color:#f0c665">最高入札：</b>${S.current?S.current+'万円（'+(S.highest==='P'?'君':S.highest)+'）':'開始前'}　<b>開始価格：</b>${S.item.opening}万円<br>参加中：${Object.keys(S.active).filter(k=>S.active[k]).join('・')}　観察可能：${S.known.filter(i=>!S.used['obs'+i]).length}件`;
+ document.querySelectorAll('.actions button').forEach(b=>{let t=b.textContent;b.disabled=(t.includes('質問')&&S.used.question)||(t.includes('盗聴')&&S.used.eaves)||(t.includes('観察')&&!S.known.some(i=>!S.used['obs'+i]))||(!S.active.P&&!t.includes('履歴'));});auSave()}
+function auFactorText(i){let t=S.item.truth[i];return `「${S.item.traits[i]}」：${t===1?'良好（価値を高める要素）':t===-1?'不良（価値を下げる要素）':'標準的（大きな加点・減点なし）'}`}
+function auInfoAdvance(){S.step++;if(!S.started){S.started=true;auNpcCycle(1)}else auNpcCycle(1);auRefresh()}
+function auObserve(){let choices=S.known.filter(i=>!S.used['obs'+i]);if(!choices.length)return auShow('今分かっている観察方法は、すべて確認済みだ。');openM('<h3>どこを観察する？</h3>'+choices.map(i=>`<button class="btn" onclick="auDoObserve(${i})">${S.item.traits[i]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
+function auDoObserve(i){S.used['obs'+i]=true;closeM();auInfoAdvance();auShow(`拡大鏡を手に取り、品物を確かめる。\n\n${auFactorText(i)}\n\nこの結果は君だけが知っている。\n\nその間にも競りは進んだ。`,'非公開の観察結果')}
+function auQuestion(){if(S.used.question)return auShow('このラウンドの公開質問はもう使用した。');openM('<h3>公開質問を選択</h3><p>回答は全員に聞こえる。</p>'+S.item.publicIndices.map(i=>`<button class="btn" onclick="auDoQuestion(${i})">${S.item.traits[i]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
+function auDoQuestion(i){S.used.question=true;closeM();auInfoAdvance();auShow(`君は司会に「${S.item.traits[i]}」について尋ねた。\n\n回答：${auFactorText(i)}\n\nこの情報は会場全員に公開された。`,'公開質問の回答')}
+function auEaves(){if(S.used.eaves)return auShow('盗聴機器はこのラウンドですでに使用した。');openM('<h3>盗聴機器</h3><p>イヤホンを装着し、拾う音声を選ぶ。</p>'+['A','B','C','D'].map(k=>`<button class="btn" onclick="auDoEaves('${k}')">${k}の声を拾う</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
+function auDoEaves(k){S.used.eaves=true;closeM();let x=S.npcSecrets[k],message;if(x.type==='auth'){message=`「……鑑定印を確かめれば、本物かどうか判断できる。」`;S.knownAuth=true}else{message=`「……${S.item.traits[x.index]}。そこを見れば評価の手掛かりになる。」`;if(!S.known.includes(x.index))S.known.push(x.index)}auInfoAdvance();auShow(`イヤホンに小さな雑音が走る。\n\n${k}の声：${message}\n\n${x.type==='auth'?'真贋の追加鑑定が可能になった。':'新しい観察方法が追加された。'}\n\n相手には盗聴されたことは伝わっていない。`,'盗聴結果')}
+function auAuth(){if(!S.knownAuth||S.used.auth)return auShow('真贋の鑑定方法をまだ知らないか、すでに鑑定済みだ。');S.used.auth=true;auInfoAdvance();auShow(`鑑定印の特徴を照合する。\n\n結果：${S.item.fake?'偽物':'本物'}\n\nこの結果は君だけが知っている。`,'非公開・真贋鑑定')}
+function auBluff(){openM('<h3>ブラフ</h3><p>発言は全員に聞こえる。繰り返すほど信用されにくい。</p>'+[['低く評価する','僕には、そこまで価値があるようには見えないけどね。'],['高く評価する','君たち、本当にこの品の価値に気づいてないの？']].map((x,i)=>`<button class="btn" onclick="auDoBluff(${i})">${x[0]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
+function auDoBluff(kind){closeM();S.bluffs++;S.lastBluff=kind;auInfoAdvance();let lines=kind===0?['B「……それでも競りを見てるんだな。」','A「評価の根拠までは分かりませんね。」','C「じゃあ、降りれば？」']:['B「……そんなに良いのか？」','C「それ、みんなに教える必要ある？」','A「判断は自分でしますよ。」'];auShow(`君「${kind?'君たち、本当にこの品の価値に気づいてないの？':'僕には、そこまで価値があるようには見えないけどね。'}」\n\n${AU_PICK(lines)}\n\n${S.bluffs>1?'同じような発言が続き、会場には警戒も生まれている。':'競りの空気がわずかに変わる。'}`,'ブラフ')}
+function auNpcCycle(maxBids=3){if(S.roundDone)return;let order=AU_SHUFFLE(['A','B','C','D'].filter(k=>S.active[k]));let count=0;for(let k of order){if(count>=maxBids)break;let next=S.current?S.current+AU_PICK([1,5,5,10]):S.item.opening;if(next>S.item.max||next>S.money[k]){if(S.current&&S.highest!==k)auWithdrawNpc(k);continue}let evidence=S.npcSecrets[k],edge=evidence.type==='factor'?S.item.truth[evidence.index]:S.item.fake?-1:1;let risk=(S.current-S.item.min)/Math.max(1,S.item.max-S.item.min);let temperament={A:-.06,B:.08,C:-.01,D:.02}[k];let probability=AU_CLAMP(.69-risk*.65+edge*.10+temperament-(S.bluffs>1?.04:0),.05,.85);if(S.highest===k)continue;if(Math.random()<probability){S.current=next;S.highest=k;S.history.push(`${k}「${next}万円」`);count++}else if(S.current&&Math.random()<.26+risk*.35){auWithdrawNpc(k)}}
+ if(S.highest&&S.active.P===false)auFinishNpcAuction();}
+function auWithdrawNpc(k){if(!S.active[k]||S.highest===k)return;S.active[k]=false;S.history.push(`${k}が撤退`)}
+function auBidPrompt(){if(!S.active.P)return auShow('君はすでに撤退している。');if(S.highest==='P')return auShow('君が現在の最高入札者だ。自分の入札額は上げられない。');let base=S.current||S.item.opening-1;let increments=S.current?[1,5,10,20]:[1];let options=increments.map(x=>S.current?base+x:S.item.opening).filter(v=>v<=S.item.max&&v<=S.money.P);if(!options.length)return auShow('所持金か想定価格の上限を超えるため、入札できない。');openM(`<h3>入札額を選択</h3><p>最高額 ${S.current||'開始前'}万円 / 所持金 ${S.money.P}万円 / 上限 ${S.item.max}万円</p>`+options.map(v=>`<button class="btn" onclick="auDoBid(${v})">${v}万円で入札</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
+function auDoBid(v){let allowed=S.current?[S.current+1,S.current+5,S.current+10,S.current+20]:[S.item.opening];if(!S.active.P||S.highest==='P'||!allowed.includes(v)||v>S.item.max||v>S.money.P)return auShow('その入札額は選択できない。');closeM();S.started=true;S.current=v;S.highest='P';S.history.push(`君「${v}万円」`);auNpcCycle(3);auRefresh();if(S.highest==='P'){// Give rivals a chance to withdraw, then close once no challengers remain.
+ let challengers='ABCD'.split('').filter(k=>S.active[k]);if(!challengers.length)return auResolve();}
+ auShow(`君「${v}万円。」\n\n${S.history.slice(-5).join('\n')}\n\n現在の最高額：${S.current}万円（${S.highest==='P'?'君':S.highest}）`,'入札の結果')}
+function auFold(){if(!S.active.P)return;S.active.P=false;S.history.push('君が撤退');auNpcCycle(4);auFinishNpcAuction();auRefresh();if(!S.roundDone)auShow('君は札を下ろした。\n残った参加者だけで競りが続く。','撤退')}
+function auFinishNpcAuction(){if(S.active.P||S.roundDone)return;let n=0;while(n++<55){let others='ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest);if(others.length===0)break;let old=S.current;auNpcCycleOnce();if(S.current===old){let k=AU_PICK(others);auWithdrawNpc(k)}}auResolve()}
+function auNpcCycleOnce(){let k=AU_PICK('ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest));if(!k)return;let v=S.current?S.current+AU_PICK([1,5,10]):S.item.opening;if(v<=S.item.max&&v<=S.money[k]&&Math.random()<.42){S.current=v;S.highest=k;S.history.push(`${k}「${v}万円」`)}else auWithdrawNpc(k)}
+function auCheckClose(){if(S.roundDone)return;let others=Object.keys(S.active).filter(k=>S.active[k]&&k!==S.highest);if(S.highest&&others.length===0)auResolve()}
+function auResolve(){if(S.roundDone)return;S.roundDone=true;let winner=S.highest;let bid=S.current;let value=S.item.value;if(winner){S.money[winner]=S.money[winner]-bid+value}S.records.push({round:S.round,item:S.item.name,winner:winner||'なし',bid,value,fake:S.item.fake,money:{...S.money}});auSave();let delta=value-bid;let winnerName=winner==='P'?'君':winner||'落札者なし';openM(`<h3>ROUND ${S.round} — 鑑定結果</h3><p style="line-height:1.8">落札：<b>${winnerName}</b>（${winner?bid+'万円':'なし'}）<br>真贋：<b>${S.item.fake?'偽物':'本物'}</b><br>実際の価値：<b>${value}万円</b><br>落札損益：<b>${winner?(delta>=0?'+':'')+delta+'万円':'—'}</b></p><p style="font-size:12px">${S.item.traits.map((t,i)=>`${t}：${S.item.truth[i]>0?'良好':S.item.truth[i]<0?'不良':'標準'}`).join('<br>')}</p><button class="btn" onclick="auNextRound()">${S.round===5?'最終結果を見る':'次のラウンドへ ▶'}</button>`);render()}
+function auNextRound(){closeM();S.round++;S.knownAuth=false;if(S.round>5)auFinal();else auStartRound()}
+function auFinal(){S.roundDone=true;let ranking=Object.entries(S.money).sort((a,b)=>b[1]-a[1]);let top=ranking[0][1];let tied=ranking.filter(x=>x[1]===top).length;let result=S.money.P===top?(tied>1?'DRAW — 同率首位':'WIN — 優勝'):'LOSE — 敗北';openM(`<h2>THE AUCTION GAME</h2><h3>${result}</h3><p>5ラウンド終了。最終順位は残金だけで決定する。</p><div class="history">${ranking.map(([k,m],i)=>`${i+1}位 ${k==='P'?'君':k}　${m}万円`).join('<br>')}</div><button class="btn" onclick="auNewGame()">最初から遊ぶ</button>`);auSave()}
+function auNewGame(){S=auFresh();localStorage.removeItem(AUKEY);closeM();auStartRound()}
+// Replace only mechanics, retaining all original portrait and stage presentation.
+productVisual=function(){return art(S.item.type)};startRound=auStartRound;observe=auObserve;question=auQuestion;eavesdrop=auEaves;bluff=auBluff;bidPrompt=auBidPrompt;fold=auFold;newGame=auNewGame;
+render=(function(original){return function(){original();auEnsure();let old=document.getElementById('auExtra');if(!S.roundDone&&S.item){if(!old)auRefreshNoRender();else auRefreshNoRender()}else if(old)old.remove()}})(render);
+function auRefreshNoRender(){let el=document.getElementById('auExtra');if(!el){el=document.createElement('div');el.id='auExtra';el.style='font-size:11px;line-height:1.5;padding:5px 8px;border:1px solid #4a5d77;border-radius:8px;background:#091827';let actions=document.querySelector('.actions');actions.parentNode.insertBefore(el,actions)}el.innerHTML=`<b style="color:#f0c665">最高入札：</b>${S.current?S.current+'万円（'+(S.highest==='P'?'君':S.highest)+'）':'開始前'}　開始価格：${S.item.opening}万円<br>参加中：${Object.keys(S.active).filter(k=>S.active[k]).join('・')}　観察可能：${S.known.filter(i=>!S.used['obs'+i]).length}件`;
+ document.querySelectorAll('.actions button').forEach(b=>{let t=b.textContent;b.disabled=(t.includes('質問')&&S.used.question)||(t.includes('盗聴')&&S.used.eaves)||(t.includes('観察')&&!S.known.some(i=>!S.used['obs'+i]))});auSave()}
+// Remove stale prototype save; resume only complete-engine games.
+try{let prev=JSON.parse(localStorage.getItem(AUKEY)||'null');S=prev&&prev.item&&prev.item.traits?prev:auFresh()}catch(e){S=auFresh()}
+if(!S.item)auStartRound();else if(S.round>5)auFinal();else{auEnsure();screen('auction');render()}
+// Extra actions for eavesdropped authenticity, finalizing and information notes.
+const auButtons=document.querySelector('.actions');if(auButtons){let b=document.createElement('button');b.className='btn';b.textContent='鑑定・情報メモ';b.onclick=()=>{let notes=S.known.map(i=>`${S.item.traits[i]}：${S.used['obs'+i]?auFactorText(i):'観察可能（未確認）'}`).join('\n');openM(`<h3>鑑定・情報メモ</h3><p style="white-space:pre-line;line-height:1.8">${notes}\n${S.used.auth?'真贋：'+(S.item.fake?'偽物':'本物'):S.knownAuth?'真贋の追加鑑定が可能':'真贋は不明'}</p>${S.knownAuth&&!S.used.auth?'<button class="btn" onclick="closeM();auAuth()">真贋を追加鑑定する</button>':''}<button class="btn" onclick="closeM()">閉じる</button>`)};auButtons.appendChild(b);let c=document.createElement('button');c.className='btn';c.textContent='競りを進める';c.onclick=()=>{if(S.roundDone)return;if(!S.started)S.started=true;auNpcCycle(3);if(S.highest==='P'){for(let k of 'ABCD'){if(S.active[k]&&Math.random()<.38)auWithdrawNpc(k)}auCheckClose()}else if(!S.active.P)auFinishNpcAuction();if(!S.roundDone){auRefresh();auShow(S.history.slice(-5).join('\n')||'会場は静かに次の札を待っている。','競りの進行')}};auButtons.appendChild(c)}
+
 </script></body></html>
