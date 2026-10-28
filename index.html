@@ -340,8 +340,150 @@ function showReveal(){hide();charHero.style.display='none';reveal.classList.remo
 function showReactions(){hide();charHero.style.display='none';react.classList.remove('hidden');react.innerHTML='ABCD'.split('').map(k=>`<div class="reactRow"><div class="reactPortrait"><img src="${PIC[k]}"></div><div class="reactTxt"><b class="${k}">${k}</b><span class="muted">${ROLE[k]}</span><br>${REACT[k]}</div></div>`).join('');setTalk('','','四人の視線が、品物へ集まる。','秘密情報を受け取る ▶')}
 function showSecret(){hide();charHero.style.display='none';secret.classList.remove('hidden');secret.innerHTML=`<div class="paper"><h2>◆ 秘密情報 ◆</h2><div class="hand">PLAYERへ<br><br><span class="underline">${S.item.playerSecret}</span></div><small>※この情報は他のプレイヤーには知られていない。<br>※A・B・C・Dにも、それぞれ別の秘密情報が1つだけ配られている。</small></div>`;setTalk('秘密情報','PRIVATE INFORMATION','他の四人にも別々の情報が渡された。内容は見えない。','オークション開始へ ▶')}
 function showGroup(x){hide();charHero.style.display='none';groupScene.classList.remove('hidden');groupScene.innerHTML=`<div class="g ga"><img src="${PIC.A}" alt=""></div><div class="g gb"><img src="${PIC.B}" alt=""></div><div class="g gc"><img src="${PIC.C}" alt=""></div><div class="g gd"><img src="${PIC.D}" alt=""></div>`;setTalk('','',x.txt,'会話を進める ▶')}
-function showSay(x){hide();const tag=document.getElementById('playerTag');const stage=document.querySelector('.stage');tag.classList.remove('show');stage.classList.remove('playerScene');const playerAction=!x.who&&/^(拡大鏡を手に取り|君は司会に|君は|僕は)/.test(String(x.txt||''));stage.classList.toggle('auNarrationScene',!x.who&&!playerAction);stage.classList.toggle('auPlayerAction',playerAction);if(playerAction){charHero.style.display='flex';charImg.src=ADV.P;tag.classList.add('show');stage.classList.add('playerScene')}if(x.who){charHero.style.display='flex';charImg.src=ADV[x.who];if(x.who==='P'){tag.classList.add('show');stage.classList.add('playerScene')}}else if(!playerAction){charHero.style.display='none'};setTalk(x.sp||'状況',x.role||(x.who?ROLE[x.who]:'')||'',x.txt,Q.length?'会話を進める ▶':'行動選択へ ▶')}
-function advance(){if(!Q.length){render();screen('auction');return}let x=Q.shift();if(x.k==='reactions')showReactions();else if(x.k==='secret')showSecret();else if(x.k==='say')showSay(x);else if(x.k==='group')showGroup(x);else{render();screen('auction')}}
+// v9.73: Record the actual state when each NPC line reaches the visible ADV screen.
+// This is observational: it does not change NPC decisions or game rules.
+window.auVisibleEventAudit=[];
+function auAuditVisibleBeat(x){
+ if(!x||!x.who||!/[ABCD]/.test(x.who)||x.who.length!==1)return;
+ const bid=String(x.txt||'').match(/^「(\d+)万円」$/);
+ const fold=String(x.txt||'')==='競売から撤退する。';
+ if(!bid&&!fold)return;
+ const history=(S.history||[]);
+ const expected=bid?`${x.who}「${bid[1]}万円」`:`${x.who}が撤退`;
+ const recorded=history.includes(expected);
+ const stateMatches=bid?(S.highest===x.who&&S.current===Number(bid[1])):!S.active[x.who];
+ const record={round:S.round,who:x.who,kind:bid?'bid':'fold',expected,recorded,stateMatches,current:S.current,highest:S.highest,active:S.active[x.who],historyLength:history.length};
+ window.auVisibleEventAudit.push(record);
+ if(!recorded)console.error('Visible ADV event missing from history',record);
+ // A historical bid can be superseded by a subsequent NPC bid; stateMatches
+ // is diagnostic only, not an error until event ordering is verified.
+}
+
+window.auCommitDisplaySummary=function(){
+ const a=window.auCommitDisplayAudit||[];
+ return {total:a.length,shown:a.filter(x=>x.visible).length,pending:a.filter(x=>!x.visible).length,
+  preCommitted:a.filter(x=>x.phase==='before_display').length,
+  information:a.filter(x=>x.source==='information').length,
+  disclaimer:'Planned NPC actions are committed when the corresponding ADV beat is displayed; the planned settlement modal is held until commit.'};
+};
+function showSay(x){
+ if(x.pendingNpcPlan)auCommitPlannedDecision(x.pendingNpcPlan);
+ // Mark the corresponding committed event as visible; never count a line twice.
+ if(x&&/^[ABCD]$/.test(x.who||'')){
+   const m=String(x.txt||'').match(/^「(\d+)万円」$/);
+   const event=m?`${x.who}「${m[1]}万円」`:(x.txt==='競売から撤退する。'?`${x.who}が撤退`:null);
+   if(event&&Array.isArray(window.auCommitDisplayAudit)){
+     const record=window.auCommitDisplayAudit.find(r=>r.round===S.round&&r.event===event&&!r.visible);
+     if(record){record.visible=true;record.displayCurrent=S.current;record.displayHighest=S.highest;record.displayHistoryLength=(S.history||[]).length;record.displaySequence=window.auCommitDisplayAudit.filter(r=>r.visible).length;}
+   }
+ }
+ auAuditVisibleBeat(x);hide();const tag=document.getElementById('playerTag');const stage=document.querySelector('.stage');tag.classList.remove('show');stage.classList.remove('playerScene');const playerAction=!x.who&&/^(拡大鏡を手に取り|君は司会に|君は|僕は)/.test(String(x.txt||''));stage.classList.toggle('auNarrationScene',!x.who&&!playerAction);stage.classList.toggle('auPlayerAction',playerAction);if(playerAction){charHero.style.display='flex';charImg.src=ADV.P;tag.classList.add('show');stage.classList.add('playerScene')}if(x.who){charHero.style.display='flex';charImg.src=ADV[x.who];if(x.who==='P'){tag.classList.add('show');stage.classList.add('playerScene')}}else if(!playerAction){charHero.style.display='none'};// The last visible beat can still be followed by NPC decisions or a result.
+const nextLabel=(Q.length===1&&Q[0].k==='go')?(S.roundDone?'鑑定結果へ ▶':(!S.active.P?'競売の続きを見る ▶':'行動選択へ ▶')):(Q.length===1&&['npcTurn','infoNpcTurn'].includes(Q[0].k))?'競売の続きを見る ▶':Q.length?'会話を進める ▶':
+  (typeof S!=='undefined'&&S.roundDone?'鑑定結果へ ▶':
+   (typeof S!=='undefined'&&!S.active.P?'競売の続きを見る ▶':'行動選択へ ▶'));
+setTalk(x.sp||'状況',x.role||(x.who?ROLE[x.who]:'')||'',x.txt,nextLabel)}
+function advance(){
+ if(!Q.length){if(typeof S!=='undefined'&&!S.roundDone&&!S.active.P){Q=[{k:'npcTurn'}];auAdvNpcTurn();return;}render();screen('auction');auShowPendingResult();return}
+ let x=Q.shift();
+ if(x.k==='npcTurn'){auAdvNpcTurn();return}
+ if(x.k==='commitNpcPlan'){auCommitPlannedDecision(x.plan);advance();return}
+ if(x.k==='infoNpcTurn'){auAdvInfoNpcTurn();return}
+ if(x.k==='reactions')showReactions();else if(x.k==='secret')showSecret();else if(x.k==='say')showSay(x);else if(x.k==='group')showGroup(x);else{if(!S.roundDone&&!S.active.P){Q=[{k:'npcTurn'}];auAdvNpcTurn();return;}render();screen('auction');auShowPendingResult()}
+}
+// NPC-only auction is evaluated one decision at a time, on each ADV advance.
+// No hidden full-auction simulation is performed before the dialogue.
+let auAdvNpcSteps=0;
+// Plan one NPC decision without changing the live auction state.
+// The planned state is committed when the corresponding ADV dialogue appears.
+function auPlanNpcDecision(){
+ const live=S, snapshot=structuredClone(S);
+ let projected, lines, plannedResultHTML=null;
+ const previousPendingResult=auPendingResultHTML;
+ try{
+  S=structuredClone(live);
+  const before=S.history.length;
+  const old=auDeferResult;auDeferResult=true;
+  try{auNpcCycleOnce();}finally{auDeferResult=old;}
+  projected=structuredClone(S);
+  lines=S.history.slice(before);
+  plannedResultHTML=auPendingResultHTML;
+ }finally{S=live;auPendingResultHTML=previousPendingResult;}
+ return {projected,lines,plannedResultHTML:projected.roundDone?plannedResultHTML:null,base:{round:live.round,current:live.current,highest:live.highest,historyLength:live.history.length}};
+}
+function auCommitPlannedDecision(plan){
+ if(!plan||plan.done)return;
+ // Record the live state immediately before the planned action is applied.
+ // This is independent of the earlier projected state used for dialogue.
+ window.auNpcCommitChecks=window.auNpcCommitChecks||[];
+ const prior={round:S.round,current:S.current,highest:S.highest,historyLength:S.history.length};
+ // Reject stale plans rather than silently overwriting a newer auction state.
+ const base=plan.base;
+ if(base&&(base.round!==S.round||base.current!==S.current||base.highest!==S.highest||base.historyLength!==S.history.length)){
+   console.error('Stale NPC plan rejected', {base,prior});
+   window.auNpcStalePlans=(window.auNpcStalePlans||0)+1;
+   plan.done=true;
+   return;
+ }
+ const projected=plan.projected;
+ const changes=plan.lines.filter(line=>/^([ABCD])「\d+万円」$/.test(line)||/^([ABCD])が撤退$/.test(line));
+ window.auNpcCommitChecks.push({prior,events:changes.slice(),expectedCurrent:projected.current,expectedHighest:projected.highest,phase:'display',singleAction:changes.length<=1});
+ // Preserve the live object identity used by the UI, and commit once.
+ for(const key of Object.keys(S))delete S[key];
+ Object.assign(S,plan.projected);
+ plan.done=true;
+ if(S.roundDone&&plan.plannedResultHTML!==null)auPendingResultHTML=plan.plannedResultHTML;
+ auCheckClose();auSave();
+ const latest=window.auNpcCommitChecks[window.auNpcCommitChecks.length-1];
+ latest.actualCurrent=S.current;
+ latest.actualHighest=S.highest;
+ latest.historyMatches=plan.lines.every((line,i)=>S.history[prior.historyLength+i]===line);
+ latest.stateMatches=projected.current===S.current&&projected.highest===S.highest;
+ if(!latest.historyMatches||!latest.stateMatches)console.error('NPC commit regression',latest);
+}
+function auAdvNpcTurn(){
+ if(S.roundDone){Q=[{k:'go'}];advance();return;}
+ // If a rival outbid the player, the next decision belongs to the player.
+ if(S.active.P&&S.highest!=='P'){
+  Q=[{k:'say',sp:'',who:null,role:'AUCTION',txt:`現在の最高額は${S.current}万円。次の行動を選んでください。`},{k:'go'}];
+  advance();return;
+ }
+ if(++auAdvNpcSteps>2000){
+  console.error('NPC auction exceeded decision safety limit');
+  Q=[{k:'say',sp:'',who:null,role:'AUCTION',txt:'競売の進行を確認できませんでした。'},{k:'go'}];advance();return;
+ }
+ const plan=auPlanNpcDecision();
+ const lines=plan.lines;
+ const projected=plan.projected;
+ // Attach the pending mutation to the first visible dialogue beat.
+ // If the NPC takes no action, commit on the next ADV continuation instead.
+ // v9.75: capture the state at the moment a rival decision is committed.
+ // This audit deliberately does not claim that the action commits on display.
+ window.auCommitDisplayAudit=window.auCommitDisplayAudit||[];
+ const committed=lines.filter(line=>/^([ABCD])「\d+万円」$/.test(line)||/^([ABCD])が撤退$/.test(line));
+ for(const event of committed){
+   window.auCommitDisplayAudit.push({round:S.round,event,phase:'pending_display',current:projected.current,highest:projected.highest,visible:false});
+ }
+ // Regression audit: every NPC bid/withdrawal must produce exactly one ADV beat.
+ const auExpectedEvents=lines.filter(line=>/^([ABCD])「\d+万円」$/.test(line)||/^([ABCD])が撤退$/.test(line));
+ const beats=lines.map(line=>{
+  const bid=line.match(/^([ABCD])「(.*)」$/),fold=line.match(/^([ABCD])が撤退$/);
+  if(bid)return {k:'say',sp:bid[1],who:bid[1],role:ROLE[bid[1]],txt:'「'+bid[2]+'」'};
+  if(fold)return {k:'say',sp:fold[1],who:fold[1],role:ROLE[fold[1]],txt:'競売から撤退する。'};
+  return {k:'say',sp:'',who:null,role:'AUCTION',txt:line};
+ });
+ // Record audit evidence for automated regression tests without altering gameplay.
+ window.auAdvEventAudit=window.auAdvEventAudit||[];
+ const auActualEvents=beats.filter(beat=>/^[ABCD]$/.test(beat.who||'')&&(/^[「]\d+万円[」]$/.test(beat.txt)||beat.txt==='競売から撤退する。'));
+ window.auAdvEventAudit.push({round:S.round,events:auExpectedEvents.slice(),beats:auActualEvents.map(beat=>({who:beat.who,txt:beat.txt})),matched:auExpectedEvents.length===auActualEvents.length&&auExpectedEvents.every((line,i)=>{const beat=auActualEvents[i];if(!beat||line[0]!==beat.who)return false;const bid=line.match(/^[ABCD]「(.*)」$/);return bid?beat.txt==='「'+bid[1]+'」':/撤退/.test(beat.txt);})});
+ if(!window.auAdvEventAudit[window.auAdvEventAudit.length-1].matched)console.error('NPC/ADV event mismatch');
+ if(projected.roundDone){Q=[...beats,{k:'say',sp:'',who:null,role:'AUCTION',txt:'落札が確定した。鑑定結果を確認しよう。'},{k:'go'}];}
+ else if(projected.active.P&&projected.highest!=='P'){
+  Q=[...beats,{k:'say',sp:'',who:null,role:'AUCTION',txt:`現在の最高額は${projected.current}万円。次の行動を選んでください。`},{k:'go'}];
+ }else{Q=[...beats,{k:'npcTurn'}];}
+ if(beats.length){beats[0].pendingNpcPlan=plan;}
+ else Q.unshift({k:'commitNpcPlan',plan});
+ advance();
+}
 function mood(k){if(!S.active[k])return'撤退';if(S.highest===k)return k==='A'?'集中':k==='B'?'興奮':k==='C'?'微笑': '執着';let z=S.current/(S.item.max||1);return k==='A'?(z>.65?'警戒':'観察'):k==='B'?(z>.55?'焦り':'期待'):k==='C'?(z>.55?'含み笑い':'無表情'):(S.aggr>1?'苛立ち':'凝視')}
 function render(){round.textContent=`ROUND ${S.round} / 5`;money.textContent=S.money.P+'万円';advMoney.textContent=S.money.P+'万円';miniArt.innerHTML=productVisual();itemName.textContent=S.item.name;est.textContent=`${S.item.min}〜${S.item.max}万円`;cur.textContent=S.current?S.current+'万円':'開始前';clue.textContent='🔒 '+S.item.playerSecret;faces.innerHTML='ABCD'.split('').map(k=>`<button class="face ${S.active[k]?'':'au-withdrawn'} ${S.highest===k?'au-leading':''}" data-rival="${k}" aria-label="${k}：${mood(k)}、所持金${S.money[k]}万円" onclick="inspect('${k}')"><img src="${PIC[k]}" alt="ライバル${k}の立ち絵"><span class="mood">${mood(k)}</span><span class="foot"><b>${k}</b><span>${S.money[k]}万</span></span></button>`).join('');save()}
 function scene(sp,txt){Q=[{k:'say',sp,who:sp,txt},{k:'go'}];advance()}
@@ -430,29 +572,94 @@ function auActionAdv(message,title='競りの状況',who='P'){
     for(const line of lines){
       const npc=line.match(/^([ABCD])「([\s\S]*)」$/);
       const player=line.match(/^君「([\s\S]*)」$/);
+      const host=line.match(/^司会「([\s\S]*)」$/);
       const overheard=line.match(/^([ABCD])の声：[「]([\s\S]*)[」]$/);
       if(npc){Q.push({k:'say',sp:npc[1],who:npc[1],role:ROLE[npc[1]],txt:'「'+npc[2]+'」'});}
       else if(overheard){Q.push({k:'say',sp:overheard[1],who:overheard[1],role:'盗聴した声',txt:'「'+overheard[2]+'」'});}
       else if(player){Q.push({k:'say',sp:'PLAYER',who:'P',role:'YOU / あなた',txt:'「'+player[1]+'」'});}
+      else if(host){Q.push({k:'say',sp:'',who:null,role:'AUCTION / 司会',txt:'「'+host[1]+'」'});}
+      else if(/^([ABCD])が撤退$/.test(line)){const k=line[0];Q.push({k:'say',sp:k,who:k,role:ROLE[k],txt:'競売から撤退する。'});}
       else {Q.push({k:'say',sp:'',who:null,role:'AUCTION',txt:line});}
     }
   });
-  Q.push({k:'go'});
+  // Show only the NPC decisions made during this information action.
+  // Never replay earlier auction history as a new reaction.
+  for(const event of auPendingInfoNpcEvents){
+    const bid=event.match(/^([ABCD])「(.*)」$/);
+    const fold=event.match(/^([ABCD])が撤退$/);
+    if(bid)Q.push({k:'say',sp:bid[1],who:bid[1],role:ROLE[bid[1]],txt:'「'+bid[2]+'」'});
+    else if(fold)Q.push({k:'say',sp:fold[1],who:fold[1],role:ROLE[fold[1]],txt:'競売から撤退する。'});
+  }
+  auPendingInfoNpcEvents=[];
+  Q.push({k:'infoNpcTurn'});
   screen('adv');
   advance();
 }
 
 function auFactorText(i){let t=S.item.truth[i];return `「${S.item.traits[i]}」：${t===1?'良好（価値を高める要素）':t===-1?'不良（価値を下げる要素）':'標準的（大きな加点・減点なし）'}`}
-function auInfoAdvance(){if(S.roundDone)return;S.step++;if(!S.started){S.started=true;auNpcCycleSafe(1)}else auNpcCycleSafe(1);if(S.roundDone)return;auRefresh()}
+let auPendingInfoNpcEvents=[];
+function auInfoAdvance(){
+ if(S.roundDone)return;
+ S.step++;
+ // The information action is shown first. NPC decisions occur only when
+ // the player advances past that information in the ADV screen.
+ if(!S.started)S.started=true;
+}
+function auAdvInfoNpcTurn(){
+ if(S.roundDone){Q=[{k:'go'}];advance();return;}
+ // Use the same deferred-commit planning mechanism as bids and withdrawals.
+ const plan=auPlanNpcDecision();
+ const projected=plan.projected;
+ const beats=plan.lines.map(line=>{
+  const bid=line.match(/^([ABCD])「(.*)」$/),fold=line.match(/^([ABCD])が撤退$/);
+  if(bid)return {k:'say',sp:bid[1],who:bid[1],role:ROLE[bid[1]],txt:'「'+bid[2]+'」'};
+  if(fold)return {k:'say',sp:fold[1],who:fold[1],role:ROLE[fold[1]],txt:'競売から撤退する。'};
+  return {k:'say',sp:'',who:null,role:'AUCTION',txt:line};
+ });
+ const events=plan.lines.filter(line=>/^([ABCD])「\d+万円」$/.test(line)||/^([ABCD])が撤退$/.test(line));
+ window.auCommitDisplayAudit=window.auCommitDisplayAudit||[];
+ for(const event of events)window.auCommitDisplayAudit.push({round:S.round,event,source:'information',phase:'pending_display',current:projected.current,highest:projected.highest,visible:false});
+ window.auAdvInfoEventAudit=window.auAdvInfoEventAudit||[];
+ const spoken=beats.filter(beat=>/^[ABCD]$/.test(beat.who||'')&&(/^「\d+万円」$/.test(beat.txt)||beat.txt==='競売から撤退する。'));
+ const matched=events.length===spoken.length&&events.every((line,i)=>{
+  const beat=spoken[i],bid=line.match(/^([ABCD])「(.*)」$/);
+  return !!beat&&beat.who===line[0]&&(bid?beat.txt==='「'+bid[2]+'」':beat.txt==='競売から撤退する。');
+ });
+ window.auAdvInfoEventAudit.push({round:S.round,events:events.slice(),beats:spoken.map(x=>({who:x.who,txt:x.txt})),matched});
+ if(!matched)console.error('Info NPC/ADV event mismatch');
+ const next=projected.roundDone?{k:'go'}:(!projected.active.P||projected.highest==='P'?{k:'npcTurn'}:{k:'go'});
+ Q=[...beats,...(projected.roundDone?[{k:'say',sp:'',who:null,role:'AUCTION',txt:'落札が確定した。鑑定結果を確認しよう。'}]:[]),next];
+ if(beats.length)beats[0].pendingNpcPlan=plan;
+ else Q.unshift({k:'commitNpcPlan',plan});
+ advance();
+}
 function auObserve(){if(!S.active.P)return;if(S.roundDone)return;let choices=S.known.filter(i=>!S.used['obs'+i]);if(!choices.length)return auShow('今分かっている観察方法は、すべて確認済みだ。');openM('<h3>どこを観察する？</h3><p>観察中もライバルの競売が進む。結果は君だけが知る。</p>'+choices.map(i=>`<button class="btn" onclick="auDoObserve(${i})">${S.item.traits[i]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
-function auDoObserve(i){if(!S.active.P)return;if(S.roundDone||!S.known.includes(i)||S.used['obs'+i])return;S.used['obs'+i]=true;closeM();auInfoAdvance();if(S.roundDone)return;auActionAdv(`拡大鏡を手に取り、品物を確かめる。\n\n${auFactorText(i)}\n\nこの結果は君だけが知っている。\n\nその間にも競りは進んだ。`,'非公開の観察結果')}
+function auDoObserve(i){if(!S.active.P)return;if(S.roundDone||!S.known.includes(i)||S.used['obs'+i])return;S.used['obs'+i]=true;closeM();auInfoAdvance();if(S.roundDone)return;const witness=AU_PICK(['A','B','C','D'].filter(k=>S.active[k]));const watchLines={A:'慎重に確かめていますね。ですが、判断は私自身でします。',B:'おっ、何か見つけたのか？　オレにも教えろよ！',C:'ふふ、キミは何を見つけたのかな？',D:'……よく見ているな。'};auActionAdv(`拡大鏡を手に取り、品物を確かめる。\n\n${auFactorText(i)}\n\nこの結果は君だけが知っている。\n\n${witness?witness+'「'+watchLines[witness]+'」\n\n':''}この後も競りは進んでいく。`,'非公開の観察結果')}
 function auQuestion(){if(!S.active.P)return;if(S.roundDone)return;if(S.used.question)return auShow('このラウンドの公開質問はもう使用した。');openM('<h3>公開質問を選択</h3><p>回答は全員に聞こえる。質問中も競売は進む。</p>'+S.item.publicIndices.map(i=>`<button class="btn" onclick="auDoQuestion(${i})">${S.item.traits[i]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
-function auDoQuestion(i){if(!S.active.P)return;if(S.roundDone||S.used.question||!S.item.publicIndices.includes(i))return;S.used.question=true;S.publicClue=i;closeM();auInfoAdvance();if(S.roundDone)return;auActionAdv(`君は司会に「${S.item.traits[i]}」について尋ねた。\n\n回答：${auFactorText(i)}\n\nこの情報は会場全員に公開された。`,'公開質問の回答')}
+function auDoQuestion(i){if(!S.active.P)return;if(S.roundDone||S.used.question||!S.item.publicIndices.includes(i))return;S.used.question=true;S.publicClue=i;closeM();auInfoAdvance();if(S.roundDone)return;const reactions={A:'回答は参考になりますね。ただ、評価は慎重に進めます。',B:'おっ、そういうことか！　ちょっと面白くなってきたぜ！',C:'ふふ、みんなも同じ情報を聞いたんだね。',D:'……聞いた。あとは俺が判断する。'};const witnesses=['A','B','C','D'].filter(k=>S.active[k]);const witness=witnesses.length?AU_PICK(witnesses):null;auActionAdv(`君「${S.item.traits[i]}について教えてくれる？」\n\n司会「${auFactorText(i)}」\n\nこの情報は会場全員に公開された。${witness?'\n\n'+witness+'「'+reactions[witness]+'」':''}`,'公開質問の回答')}
 function auEaves(){if(!S.active.P)return;if(S.roundDone)return;if(S.used.eaves)return auShow('盗聴機器はこのラウンドですでに使用した。');openM('<h3>盗聴機器</h3><p>イヤホンを装着し、拾う音声を選ぶ。盗聴中も競売は進む。</p>'+['A','B','C','D'].map(k=>`<button class="btn" onclick="auDoEaves('${k}')">${k}の声を拾う</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
 function auDoEaves(k){if(!S.active.P)return;if(S.roundDone||S.used.eaves||!['A','B','C','D'].includes(k))return;S.used.eaves=true;closeM();let x=S.npcSecrets[k],message;S.lastEaves=x.type==='auth'?k+'：真贋の鑑定方法':k+'：'+S.item.traits[x.index]+'が手掛かり';if(x.type==='auth'){message=`「……鑑定印を確かめれば、本物かどうか判断できる。」`;S.knownAuth=true}else{message=`「……${S.item.traits[x.index]}。そこを見れば評価の手掛かりになる。」`;if(!S.known.includes(x.index))S.known.push(x.index)}auInfoAdvance();if(S.roundDone)return;auActionAdv(`イヤホンに小さな雑音が走る。\n\n${k}の声：${message}\n\n${x.type==='auth'?'真贋の追加鑑定が可能になった。':'新しい観察方法が追加された。'}\n\n相手には盗聴されたことは伝わっていない。`,'盗聴結果')}
 function auAuth(){if(!S.active.P)return;if(S.roundDone)return;if(!S.knownAuth||S.used.auth)return auShow('真贋の鑑定方法をまだ知らないか、すでに鑑定済みだ。');S.used.auth=true;auInfoAdvance();if(S.roundDone)return;auActionAdv(`鑑定印の特徴を照合する。\n\n結果：${S.item.fake?'偽物':'本物'}\n\nこの結果は君だけが知っている。`,'非公開・真贋鑑定')}
 function auBluff(){if(!S.active.P)return;if(S.roundDone)return;openM('<h3>ブラフ</h3><p>発言は全員に聞こえる。繰り返すほど信用されにくく、発言中も競売は進む。</p>'+[['低く評価する','僕には、そこまで価値があるようには見えないけどね。'],['高く評価する','君たち、本当にこの品の価値に気づいてないの？']].map((x,i)=>`<button class="btn" onclick="auDoBluff(${i})">${x[0]}</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
-function auDoBluff(kind){if(!S.active.P)return;if(S.roundDone||![0,1].includes(kind))return;closeM();S.bluffs++;S.lastBluff=kind;auInfoAdvance();if(S.roundDone)return;let lines=kind===0?['B「……それでも競りを見てるんだな。」','A「評価の根拠までは分かりませんね。」','C「じゃあ、降りれば？」']:['B「……そんなに良いのか？」','C「それ、みんなに教える必要ある？」','A「判断は自分でしますよ。」'];auActionAdv(`君「${kind?'君たち、本当にこの品の価値に気づいてないの？':'僕には、そこまで価値があるようには見えないけどね。'}」\n\n${AU_PICK(lines)}\n\n${S.bluffs>1?'同じような発言が続き、会場には警戒も生まれている。':'競りの空気がわずかに変わる。'}`,'ブラフ')}
+function auDoBluff(kind){
+ if(!S.active.P||S.roundDone||![0,1].includes(kind))return;
+ closeM();S.bluffs++;S.lastBluff=kind;auInfoAdvance();
+ if(S.roundDone)return;
+ // All four rivals react in ADV; these are reactions, not bids or withdrawals.
+ const replies=kind===0?{
+  A:'評価の根拠までは分かりませんね。',
+  B:'……それでも競りを見てるんだな。',
+  C:'ふふ、じゃあキミは降りるの？',
+  D:'……俺は自分で判断する。'
+ }:{
+  A:'判断は自分でしますよ。',
+  B:'……そんなに良いのか？',
+  C:'それ、みんなに教える必要ある？',
+  D:'……言葉だけでは決めない。'
+ };
+ const spoken=kind?'君たち、本当にこの品の価値に気づいてないの？':'僕には、そこまで価値があるようには見えないけどね。';
+ auActionAdv(`君「${spoken}」\n\n${'ABCD'.split('').map(k=>k+'「'+replies[k]+'」').join('\n\n')}\n\n${S.bluffs>1?'同じような発言が続き、会場には警戒も生まれている。':'競りの空気がわずかに変わる。'}`,'ブラフ');
+}
 function auLiveLine(k,kind){
  // A line is only a noisy hint. No character announces their private clue outright.
  const neutral={
@@ -495,18 +702,41 @@ let probability=AU_CLAMP(.69-risk*.65+edge*.10+temperament+budgetFactor+bluffFac
 function auNpcCycleSafe(maxBids=3){if(S.roundDone)return;auNpcCycle(maxBids);auCheckClose();auSave()}
 function auWithdrawNpc(k){if(!S.active[k]||S.highest===k)return;S.active[k]=false;S.history.push(`${k}が撤退`);auLogNpc(k,'fold');auCheckClose()}
 function auBidPrompt(){if(S.roundDone||S.finished)return;if(!S.active.P)return auShow('君はすでに撤退している。');if(S.highest==='P')return auShow('君が現在の最高入札者だ。自分の入札額は上げられない。');let base=S.current||S.item.opening-1;let increments=S.current?[5,10,20,30]:[5];let options=[...new Set(increments.map(x=>S.current?base+x:S.item.opening))].filter(v=>v<=S.item.max&&v<=S.money.P);if(!options.length)return auShow('所持金か想定価格の上限を超えるため、入札できない。');openM(`<h3>入札額を選択</h3><p>最高額 ${S.current?S.current+'万円':'開始前'} / 所持金 ${S.money.P}万円 / 上限 ${S.item.max}万円</p>`+options.map(v=>`<button class="btn" onclick="auDoBid(${v})">${v}万円で入札</button>`).join('')+'<button class="btn" onclick="closeM()">戻る</button>')}
-function auDoBid(v){if(S.roundDone||S.finished)return;let allowed=S.current?[S.current+5,S.current+10,S.current+20,S.current+30]:[S.item.opening];if(!Number.isFinite(v)||!S.active.P||S.highest==='P'||!allowed.includes(v)||v>S.item.max||v>S.money.P)return auShow('その入札額は選択できない。');closeM();S.started=true;S.current=v;S.highest='P';S.history.push(`君「${v}万円」`);if(S.history.length>180)S.history=S.history.slice(-180);S.quietTurns=0;auSave();auNpcCycleSafe(3);if(S.roundDone)return;auRefresh();if(S.highest==='P'){// Give rivals a chance to withdraw, then close once no challengers remain.
- let challengers='ABCD'.split('').filter(k=>S.active[k]);if(!challengers.length)return auResolve();}
- auActionAdv(`君「${v}万円。」\n\n${S.history.slice(-7).join('\n')}\n\n現在の最高額：${S.current}万円（${S.highest==='P'?'君':S.highest}）`,'入札の結果')}
-function auFold(){if(S.roundDone||!S.active.P)return;if(S.highest==='P')return auShow('君が現在の最高入札者だ。入札した金額は取り消せない。競りを進めて、ほかの参加者の判断を待とう。','入札の確認');S.active.P=false;S.history.push('君が撤退');auSave();auNpcCycleSafe(4);if(!S.roundDone)auFinishNpcAuction();if(S.roundDone)return;auRefresh();if(!S.roundDone)auActionAdv('君は札を下ろした。\n残った参加者だけで競りが続く。','撤退')}
-function auFinishNpcAuction(){if(S.active.P||S.roundDone)return;let n=0;while(n++<55){let others='ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest);if(others.length===0)break;let old=S.current;auNpcCycleOnce();if(!S.roundDone&&S.current===old){let k=AU_PICK(others);auWithdrawNpc(k)}}if(!S.roundDone){
- // Safety valve: finish only after every remaining challenger has withdrawn.
- // Do not assign a winner while multiple active bidders still remain.
- const survivors='ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest);
- for(const k of survivors){if(S.roundDone)break;auWithdrawNpc(k)}
- if(!S.roundDone)auCheckClose();
- if(!S.roundDone&&S.highest===null){for(const k of 'ABCD')S.active[k]=false;auCheckClose()}
- }}
+function auDoBid(v){
+ if(S.roundDone||S.finished)return;
+ const allowed=S.current?[S.current+5,S.current+10,S.current+20,S.current+30]:[S.item.opening];
+ if(!Number.isFinite(v)||!S.active.P||S.highest==='P'||!allowed.includes(v)||v>S.item.max||v>S.money.P)return auShow('その入札額は選択できない。');
+ closeM();S.started=true;S.current=v;S.highest='P';S.history.push(`君「${v}万円」`);
+ if(S.history.length>180)S.history=S.history.slice(-180);
+ S.quietTurns=0;auSave();auAdvNpcSteps=0;
+ // Rival decisions are made only as the ADV queue advances, not in advance.
+ Q=[{k:'say',sp:'PLAYER',who:'P',role:'YOU / あなた',txt:`僕は${v}万円で入札する。`},{k:'npcTurn'}];
+ screen('adv');advance();
+}
+function auFold(){
+ if(S.roundDone||!S.active.P)return;
+ if(S.highest==='P')return auShow('君が現在の最高入札者だ。入札した金額は取り消せない。ほかの参加者の判断を待とう。','入札の確認');
+ closeM();S.active.P=false;S.history.push('君が撤退');auSave();auAdvNpcSteps=0;
+ Q=[{k:'say',sp:'PLAYER',who:'P',role:'YOU / あなた',txt:'僕は競売から撤退する。'},{k:'npcTurn'}];
+ screen('adv');advance();
+}
+function auFinishNpcAuction(){
+ if(S.active.P||S.roundDone)return;
+ // NPC-only auction: each challenger decides to bid or withdraw using
+ // auNpcCycleOnce. No artificial withdrawal or winner assignment.
+ let turns=0;
+ while(!S.roundDone){
+  const challengers='ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest);
+  if(!challengers.length){auCheckClose();break;}
+  auNpcCycleOnce();
+  auCheckClose();
+  if(++turns>2000){
+   console.error('NPC auction exceeded decision safety limit without resolution');
+   break; // Preserve real bidder states rather than forcing a result.
+  }
+ }
+ auSave();
+}
 function auNpcCycleOnce(){
  if(S.roundDone)return;
  let choices='ABCD'.split('').filter(k=>S.active[k]&&k!==S.highest);
@@ -529,7 +759,7 @@ function auNpcCycleOnce(){
  else auWithdrawNpc(k)
 }
 function auCheckClose(){if(S.roundDone)return;if(S.highest&&!S.active[S.highest]){console.error('Inactive highest bidder; auction state repaired');S.active[S.highest]=true;}let others=Object.keys(S.active).filter(k=>S.active[k]&&k!==S.highest);if((S.highest&&others.length===0)||(!S.highest&&Object.values(S.active).every(v=>!v)))auResolve()}
-function auResolve(){if(S.roundDone)return;let winner=S.highest||null;let bid=winner?S.current:0;let value=S.item.value;if(winner&&(!Number.isFinite(bid)||bid<0||bid>S.money[winner])){console.error('Invalid winning bid; settling without a winner',winner,bid,S.money[winner]);winner=null;bid=0;}S.roundDone=true;S.quietTurns=0;if(winner){S.money[winner]=S.money[winner]-bid+value}S.records.push({round:S.round,item:S.item.name,winner:winner||'なし',bid,value,fake:S.item.fake,money:{...S.money}});S.lastResult={round:S.round,winner:winner||'なし',bid,value,fake:S.item.fake};auSave();let delta=value-bid;let winnerName=winner==='P'?'君':winner||'落札者なし';openM(`<h3>ROUND ${S.round} — 鑑定結果</h3><p style="line-height:1.8">落札：<b>${winnerName}</b>（${winner?bid+'万円':'なし'}）<br>真贋：<b>${S.item.fake?'偽物':'本物'}</b><br>実際の価値：<b>${value}万円</b><br>落札損益：<b>${winner?(delta>=0?'+':'')+delta+'万円':'—'}</b></p><p style="font-size:12px">${S.item.traits.map((t,i)=>`${t}：${S.item.truth[i]>0?'良好':S.item.truth[i]<0?'不良':'標準'}`).join('<br>')}</p><button class="btn" onclick="auNextRound()">${S.round===5?'最終結果を見る':'次のラウンドへ ▶'}</button>`);render()}
+function auResolve(){if(S.roundDone)return;let winner=S.highest||null;let bid=winner?S.current:0;let value=S.item.value;if(winner&&(!Number.isFinite(bid)||bid<0||bid>S.money[winner])){console.error('Invalid winning bid; settling without a winner',winner,bid,S.money[winner]);winner=null;bid=0;}S.roundDone=true;S.quietTurns=0;if(winner){S.money[winner]=S.money[winner]-bid+value}S.records.push({round:S.round,item:S.item.name,winner:winner||'なし',bid,value,fake:S.item.fake,money:{...S.money}});S.lastResult={round:S.round,winner:winner||'なし',bid,value,fake:S.item.fake};auSave();let delta=value-bid;let winnerName=winner==='P'?'君':winner||'落札者なし';auResultOpen(`<h3>ROUND ${S.round} — 鑑定結果</h3><p style="line-height:1.8">落札：<b>${winnerName}</b>（${winner?bid+'万円':'なし'}）<br>真贋：<b>${S.item.fake?'偽物':'本物'}</b><br>実際の価値：<b>${value}万円</b><br>落札損益：<b>${winner?(delta>=0?'+':'')+delta+'万円':'—'}</b></p><p style="font-size:12px">${S.item.traits.map((t,i)=>`${t}：${S.item.truth[i]>0?'良好':S.item.truth[i]<0?'不良':'標準'}`).join('<br>')}</p><button class="btn" onclick="auNextRound()">${S.round===5?'最終結果を見る':'次のラウンドへ ▶'}</button>`);render()}
 function auNextRound(){if(!S.roundDone||S.finished||S.round>5)return;closeM();if(S.round===5){auFinal();return}S.round++;S.knownAuth=false;auSave();auStartRound()}
 function auFinal(){S.roundDone=true;S.finished=true;auSave();screen('auction');let ranking=Object.entries(S.money).sort((a,b)=>b[1]-a[1]);let top=ranking[0][1];let tied=ranking.filter(x=>x[1]===top).length;let result=S.money.P===top?(tied>1?'DRAW — 同率首位':'WIN — 優勝'):'LOSE — 敗北';openM(`<h2>THE AUCTION GAME</h2><h3>${result}</h3><p>5ラウンド終了。順位は落札品の実価を反映した最終所持金で決定する。</p><div class="history">${ranking.map(([k,m],i)=>`${ranking.filter(x=>x[1]>m).length+1}位 ${k==='P'?'君':k}　${m}万円`).join('<br>')}</div><p style="line-height:1.8">君の最終所持金：<b>${S.money.P}万円</b>（開始時から <b>${S.money.P-200>=0?'+':''}${S.money.P-200}万円</b>）</p><h3>競売の記録</h3><div class="history" style="overflow-wrap:anywhere;line-height:1.8">${[...S.records].sort((a,b)=>a.round-b.round).map(r=>`第${r.round}回：${r.item} ／ ${r.winner==='P'?'君':r.winner==='なし'?'落札なし':r.winner} ／ ${r.winner==='なし'?'—':r.bid+'万円'} ／ 実価${r.value}万円${r.fake?'（偽物）':''}${r.winner==='なし'?'':` ／ 損益${r.value-r.bid>=0?'+':''}${r.value-r.bid}万円`}`).join('<br>')}</div><button class="btn" onclick="auNewGame()">最初から遊ぶ</button>`);auSave()}
 function auNewGame(){document.getElementById('auLiveTalk')?.remove();S=auFresh();S.finished=false;closeM();auStartRound()}
@@ -643,7 +873,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      hint.textContent='競売が続いている理由：残っているのは君と最高入札者の'+S.highest+'だけ。君が再入札するか「降りる」を選ぶと決着へ進める。';
      hint.hidden=false;
    }else if(S.active.P&&S.highest==='P'&&rivals.length){
-     hint.textContent='君が最高入札者だよ。「競りを進める」で残りのライバルの判断を待とう。';
+     hint.textContent='君が最高入札者だよ。ADVで残りのライバルの判断が進むよ。';
      hint.hidden=false;
    }else{hint.hidden=true}
  }
@@ -724,7 +954,7 @@ window.auctionDebugSnapshot = function(label='snapshot') {
     foldButton.textContent='✓ 撤退済み';
    }else if(leading){
     bid.textContent='👑 最高入札中';
-    foldButton.textContent='▶ 競りを進める';
+    foldButton.textContent='⏳ ADVで競売進行';foldButton.disabled=true;
    }else{
     bid.textContent='🔨 入札する';
     foldButton.textContent='× 降りる';
@@ -854,6 +1084,259 @@ window.auctionDebugSnapshot = function(label='snapshot') {
  }
  new MutationObserver(update).observe(modal,{childList:true,subtree:false,attributes:true,attributeFilter:['class']});
  update();
+})();
+</script>
+<style id="v946-choices-only-style">
+#auLiveTalk{display:none!important}
+.actions button{display:none!important}
+.actions button:nth-child(1),.actions button:nth-child(2),.actions button:nth-child(3),.actions button:nth-child(4),.actions button:nth-child(7){display:block!important}
+#auction .quickActions{z-index:30}
+</style>
+<script id="v946-adv-flow">
+/* Every player decision is followed by ADV, including NPC reactions. */
+(function(){
+ const baseOpen=openM, baseAdvance=advance;
+ let running=false, resultHtml=null;
+ openM=function(html){if(running&&String(html).includes('鑑定結果')){resultHtml=html;return;}return baseOpen.apply(this,arguments)};
+ const originalActionAdv=auActionAdv;
+ auActionAdv=function(){if(running)return;return originalActionAdv.apply(this,arguments)};
+ const npcRe=/^([ABCD])「(.*)」$/;
+ // Avoid showing the numeric bid twice when the history also contains a reaction line.
+ function addNpcLines(queue,history){
+  let previous='';
+  for(const line of history){
+   const m=String(line).match(npcRe);
+   if(m){if(line!==previous)queue.push({k:'say',sp:m[1],who:m[1],role:ROLE[m[1]],txt:'「'+m[2]+'」'});previous=line;continue}
+   const bid=String(line).match(/^([ABCD])が(\d+)万円/);
+   if(bid){queue.push({k:'say',sp:bid[1],who:bid[1],role:ROLE[bid[1]],txt:'「'+bid[2]+'万円で入る。」'});continue}
+   const fold=String(line).match(/^([ABCD])が撤退/);
+   if(fold)queue.push({k:'say',sp:fold[1],who:fold[1],role:ROLE[fold[1]],txt:fold[1]==='A'?'「私はここで降ります。」':fold[1]==='B'?'「オレは降りるぜ！」':fold[1]==='C'?'「ボクはここで降りるよ。」':'「……俺は降りる。」'});
+  }
+ }
+ function startAdv(queue){
+  if(!queue.length)queue.push({k:'say',sp:'',who:null,txt:'競売が進んだ。'});
+  queue.push({k:'go'});Q=queue;closeM();screen('adv');baseAdvance();
+ }
+ function run(kind,original,args){
+  if(!S||S.roundDone||!S.active.P)return original.apply(this,args);
+  const oldHistory=S.history.length, oldCurrent=S.current, oldUsed=JSON.stringify(S.used);
+  resultHtml=null;running=true;
+  let out;
+  try{out=original.apply(this,args)}finally{running=false}
+  if(oldHistory===S.history.length&&oldCurrent===S.current&&oldUsed===JSON.stringify(S.used)&&!S.roundDone)return out;
+  const queue=[];
+  if(kind==='observe'){
+   const i=args[0];queue.push({k:'say',sp:'PLAYER',who:'P',txt:'（……品物をよく確かめよう。）'});
+   queue.push({k:'say',sp:'',who:null,txt:auFactorText(i)+'\nこの結果は君だけが知っている。'});
+   const k=AU_PICK(['A','B','C','D']);queue.push({k:'say',sp:k,who:k,txt:(REACT[k]||'「……なるほど。」')});
+  }else if(kind==='question'){
+   const i=args[0];queue.push({k:'say',sp:'PLAYER',who:'P',txt:'「'+S.item.traits[i]+'について教えてほしい。」'});
+   queue.push({k:'say',sp:'司会',who:null,txt:auFactorText(i)+'\nこの情報は全員に公開された。'});
+   for(const k of AU_SHUFFLE(['A','B','C','D']).slice(0,2))queue.push({k:'say',sp:k,who:k,txt:REACT[k]||'「……そうか。」'});
+  }else if(kind==='eaves'){
+   const k=args[0], x=S.npcSecrets[k];queue.push({k:'say',sp:'',who:null,txt:'君は'+k+'の声に耳を澄ませた。'});
+   queue.push({k:'say',sp:k,who:k,txt:x.type==='auth'?'「……鑑定印を確かめれば、真贋が分かる。」':'「……'+S.item.traits[x.index]+'。そこが手掛かりになる。」'});
+   queue.push({k:'say',sp:'',who:null,txt:x.type==='auth'?'真贋の追加鑑定が可能になった。':'新しい観察方法が追加された。'});
+  }else if(kind==='bluff'){
+   queue.push({k:'say',sp:'PLAYER',who:'P',txt:args[0]?'「君たち、本当にこの品の価値に気づいてないの？」':'「僕には、そこまで価値があるようには見えないけどね。」'});
+   for(const k of AU_SHUFFLE(['A','B','C','D']))queue.push({k:'say',sp:k,who:k,txt:REACT[k]||'「……。」'});
+  }else if(kind==='bid')queue.push({k:'say',sp:'PLAYER',who:'P',txt:'「'+args[0]+'万円。」'});
+  else if(kind==='fold')queue.push({k:'say',sp:'PLAYER',who:'P',txt:'「僕はここで降りるよ。」'});
+  addNpcLines(queue,S.history.slice(oldHistory));
+  if(S.current!==oldCurrent)queue.push({k:'say',sp:'',who:null,txt:'現在の最高入札：'+S.current+'万円（'+(S.highest==='P'?'君':S.highest)+'）'});
+  if(S.roundDone)queue.push({k:'say',sp:'',who:null,txt:'落札が決定した。鑑定結果を確認しよう。'});
+  startAdv(queue);return out;
+ }
+ // v9.64: Older v9.46 wrappers duplicated ADV scenes and simulated NPCs in batches.
+ // The core v9.55-v9.60 handlers already enqueue single-step npcTurn/infoNpcTurn.
+ // Keep the visual tidy() below, but do not override player actions or advance().
+ // Remove redundant action buttons and the transcript panel, even after rerenders.
+ function tidy(){
+  document.getElementById('auLiveTalk')?.remove();
+  for(const b of document.querySelectorAll('.actions button')){
+   const t=b.textContent||'';
+   if(/競りを進める/.test(t)||(/入札|降りる/.test(t)&&window.innerWidth<=600))b.style.setProperty('display','none','important');else if(/入札|降りる/.test(t))b.style.removeProperty('display');
+  }
+  const quick=document.querySelector('.quickActions');if(quick){
+   const fold=quick.querySelector('.quickFold');
+   if(fold&&/競りを進める/.test(fold.textContent)){fold.disabled=true;fold.textContent='⏳ ADVで競売進行';}
+  }
+ }
+ new MutationObserver(tidy).observe(document.getElementById('auction'),{childList:true,subtree:true});tidy();
+})();
+</script>
+
+<style id="v948-desktop-actions">
+/* The fixed mobile bar is hidden on desktop; retain the original bid/fold there. */
+@media(min-width:601px){
+ #auction .actions button:nth-child(5),
+ #auction .actions button:nth-child(6){display:block!important}
+}
+@media(max-width:600px){
+ #auction .actions button:nth-child(5),
+ #auction .actions button:nth-child(6){display:none!important}
+}
+/* A manual auction-advance control is not part of the player's action set. */
+#auction .actions button:nth-child(8){display:none!important}
+</style>
+<script id="v948-controls">
+(function(){
+ function fix(){
+  const bar=document.querySelector('#auction .quickAuctionActions');
+  if(!bar||typeof S==='undefined'||!S)return;
+  const bid=bar.querySelector('.quickBid'),fold=bar.querySelector('.quickFold');
+  if(!bid||!fold)return;
+  if(S.highest==='P'&&!S.roundDone&&S.active.P){
+   bid.disabled=true;bid.textContent='👑 最高入札中';
+   fold.disabled=true;fold.textContent='⏳ ADVで競売進行';
+  }
+ }
+ const host=document.getElementById('auction');
+ if(host){new MutationObserver(fix).observe(host,{attributes:true,attributeFilter:['class']});fix()}
+})();
+</script>
+
+<script id="v949-result-handoff">
+/* Ensure the result is shown after the last ADV beat, never behind it. */
+(function(){
+ const original=window.advance;
+ window.advance=function(...args){
+  const result=original.apply(this,args);
+  const adv=document.getElementById('adv');
+  const shade=document.getElementById('shade');
+  if(typeof S!=='undefined'&&S&&S.roundDone&&!S.finished&&S.lastResult&&
+     !adv.classList.contains('on')&&!shade.classList.contains('show')){
+   auResolveResume();
+  }
+  return result;
+ };
+})();
+
+// v9.51: Keep the appraisal modal until the preceding ADV has been read.
+let auPendingResultHTML=null;
+let auDeferResult=false;
+function auResultOpen(html){
+  if(auDeferResult){auPendingResultHTML=html;return;}
+  openM(html);
+}
+function auShowPendingResult(){
+  if(auPendingResultHTML!==null){const html=auPendingResultHTML;auPendingResultHTML=null;openM(html);}
+}
+function auWrapResultTransition(name){
+  const original=window[name];
+  if(typeof original!=='function')return;
+  window[name]=function(...args){
+    const before=S.history?S.history.length:0;
+    const previous=auDeferResult;
+    auDeferResult=true;
+    try{return original.apply(this,args)}finally{
+      auDeferResult=previous;
+      if(S.roundDone&&auPendingResultHTML!==null){
+        const changes=(S.history||[]).slice(before);
+        const beats=changes.map(line=>{
+          const m=line.match(/^([ABCD])「(.*)」$/);
+          const f=line.match(/^([ABCD])が撤退$/);
+          if(m)return {k:'say',sp:m[1],who:m[1],role:ROLE[m[1]],txt:'「'+m[2]+'」'};
+          if(f)return {k:'say',sp:f[1],who:f[1],role:ROLE[f[1]],txt:'競売から撤退する。'};
+          if(line.startsWith('君'))return {k:'say',sp:'PLAYER',who:'P',role:'YOU / あなた',txt:line};
+          return {k:'say',sp:'',who:null,role:'AUCTION',txt:line};
+        });
+        Q=[{k:'say',sp:'',who:null,role:'AUCTION',txt:'競売の決着'},...beats,{k:'say',sp:'',who:null,role:'AUCTION',txt:'落札が確定した。鑑定結果を確認しよう。'},{k:'go'}];
+        closeM();screen('adv');advance();
+      }
+    }
+  };
+}
+['auDoBid','auFold','auDoObserve','auDoQuestion','auDoEaves','auDoBluff'].forEach(auWrapResultTransition);
+</script>
+
+<script>
+// v9.65: read-only diagnostic for verifying auction/ADV consistency.
+window.auAuditState=function(){
+ const problems=[];
+ if(S.current<0||!Number.isFinite(S.current))problems.push('invalid current bid');
+ if(S.highest&&!S.active[S.highest])problems.push('highest bidder inactive');
+ if(!S.roundDone&&S.highest&&S.current>S.money[S.highest])problems.push('highest bid exceeds budget');
+ if(S.roundDone&&S.lastResult&&S.lastResult.round!==S.round)problems.push('result round mismatch');
+ if(S.roundDone&&S.lastResult&&S.lastResult.winner!==S.highest)problems.push('winner mismatch');
+ return {ok:!problems.length,problems,round:S.round,roundDone:S.roundDone,highest:S.highest,current:S.current,active:{...S.active},queue:Q.length};
+};
+</script>
+
+<script id="v967-event-state-audit">
+/* Read-only snapshots captured at each NPC decision, including information actions. */
+(function(){
+ const records=[];
+ function snapshot(kind, before, after, prior){
+   const events=after.slice(before);
+   const bids=events.filter(x=>/^[ABCD]「.*」$/.test(x));
+   const folds=events.filter(x=>/^[ABCD]が撤退$/.test(x));
+   const issues=[];
+   if(S.current<prior.current)issues.push('bid decreased');
+   if(S.highest && !S.active[S.highest])issues.push('leader inactive');
+   for(const event of folds){const who=event[0];if(S.active[who])issues.push(who+' withdrew but active');}
+   // A bidder can bid and then withdraw in the same NPC cycle; final inactive state is valid.
+   const record={round:S.round,kind,events:events.slice(),bids:bids.length,folds:folds.length,
+     before:{...prior},after:{current:S.current,highest:S.highest,active:{...S.active}},issues,ok:issues.length===0};
+   records.push(record);
+   return record;
+ }
+ for(const kind of ['auNpcCycleOnce']){
+   const base=window[kind];
+   if(typeof base!=='function')continue;
+   window[kind]=function(...args){
+     const before=S.history.length;
+     const prior={current:S.current,highest:S.highest,active:{...S.active}};
+     const result=base.apply(this,args);
+     snapshot(kind,before,S.history,prior);
+     return result;
+   };
+ }
+ window.auEventStateAudit={all:()=>records.map(r=>structuredClone(r)),clear:()=>{records.length=0},summary:()=>({decisions:records.length,events:records.reduce((n,r)=>n+r.bids+r.folds,0),errors:records.flatMap(r=>r.issues),ok:records.every(r=>r.ok)})};
+})();
+</script>
+
+<script id="v974-commit-visibility-audit">
+/* Diagnostic only: compare NPC state changes with the first visible ADV beat.
+   The game mechanics, random decisions and images are unchanged. */
+(function(){
+  const baseNpc=auNpcCycleOnce;
+  const baseSay=showSay;
+  const pending=[];
+  const reports=[];
+  window.auCommitTimingAudit={reports,pending,summary(){
+    return {total:reports.length,earlyCommits:reports.filter(x=>x.committedBeforeVisible).length,
+      mismatches:reports.filter(x=>!x.eventMatches).length,pending:pending.length};
+  }};
+  auNpcCycleOnce=function(){
+    const old=S.history.length;
+    const before={highest:S.highest,current:S.current,active:{...S.active}};
+    const result=baseNpc.apply(this,arguments);
+    for(const line of S.history.slice(old)){
+      const bid=line.match(/^([ABCD])「(\d+)万円」$/);
+      const fold=line.match(/^([ABCD])が撤退$/);
+      if(!bid&&!fold)continue;
+      pending.push({round:S.round,line,who:(bid||fold)[1],kind:bid?'bid':'fold',
+        amount:bid?Number(bid[2]):null,before,after:{highest:S.highest,current:S.current,active:{...S.active}},
+        committedBeforeVisible:true});
+    }
+    return result;
+  };
+  showSay=function(x){
+    const bid=String(x?.txt||'').match(/^「(\d+)万円」$/);
+    const fold=x?.txt==='競売から撤退する。';
+    if(/^[ABCD]$/.test(x?.who||'')&&(bid||fold)){
+      const expected=bid?`${x.who}「${bid[1]}万円」`:`${x.who}が撤退`;
+      const index=pending.findIndex(v=>v.line===expected&&v.round===S.round);
+      if(index>=0){
+        const record=pending.splice(index,1)[0];
+        record.eventMatches=bid?(S.current===record.amount&&S.highest===x.who):!S.active[x.who];
+        record.visibleHighest=S.highest;record.visibleCurrent=S.current;
+        reports.push(record);
+      }
+    }
+    return baseSay.apply(this,arguments);
+  };
 })();
 </script>
 </body></html>
