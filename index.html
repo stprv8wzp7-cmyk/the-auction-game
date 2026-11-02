@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ルール大戦 v60</title><style>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ルール大戦 v61</title><style>
 :root{font-family:system-ui,sans-serif;color:#f4f6ff;background:#10172a}*{box-sizing:border-box}body{margin:0}button{cursor:pointer;font:inherit;color:inherit}#app{min-height:100dvh;padding:12px;display:flex;flex-direction:column;gap:9px}.top,.bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}.player{background:#1b2945;border:1px solid #3b5278;border-radius:12px;padding:8px 13px;min-width:28%}.player.active{border-color:#ffc966}.player h2{font-size:13px;margin:0 0 5px}.player p{margin:0;font-size:13px}.center{text-align:center}.center h1{font-size:22px;margin:0}.center small{color:#aabbd8}.rules{background:#1b2945;border-radius:10px;padding:8px 10px;font-size:12px;min-height:40px}.cards{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;flex:1;min-height:90px}.card{background:#283b5c;border:1px solid #5475a2;border-radius:10px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;min-width:0}.card:disabled,.action:disabled{opacity:.35;cursor:not-allowed}.card .emoji{font-size:25px}.card strong{font-size:clamp(9px,1.8vw,13px);line-height:1.2}.actions{display:flex;flex-wrap:wrap;gap:6px}.action,.primary{border:1px solid #5678aa;background:#28446e;border-radius:8px;padding:8px 10px;font-size:12px}.primary{background:#366dc1;border-color:#6ca2f4}#message{font-size:13px;color:#d8e7ff;flex:1}.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:15px}.dialog{background:#202f4b;border:1px solid #6587b7;border-radius:14px;padding:20px;width:min(520px,95vw);max-height:90vh;overflow:auto}.dialog h2{margin-top:0}.dialog p{line-height:1.6}.dialog button{margin:5px}.hidden{display:none!important}.mode-buttons{display:flex;gap:10px;flex-wrap:wrap}.mode-buttons button{flex:1;min-width:160px}.cpu-tag{color:#ffda83}@media (orientation:portrait){#app:before{content:none;display:none}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-height:400px){#app{padding:5px;gap:5px}.card .emoji{font-size:19px}.card{padding:4px}.player{padding:5px}.rules{padding:5px;min-height:28px}.action{padding:5px 8px}}
 </style>
 <style id="ui-v2">
@@ -197,15 +197,41 @@ body{background:radial-gradient(ellipse at 50% -20%,#7fc6db 0%,#bce3dc 19%,trans
  .status-badge{font-size:8px}
 }
 @media(orientation:landscape){.player-badges{margin-top:3px}.status-badge{font-size:9px;padding:1px 3px}}
-</style><div id="titleScreen"><div class="title-panel"><div class="title-mark">⚔️</div><h1>ルール大戦</h1><div class="title-sub">RULE BATTLE · v59</div><button class="menu-option" id="startCpu">🤖 CPU戦</button><button class="menu-option" id="startLocal">👥 対人戦</button><button class="menu-option secondary" id="openHelp">📖 遊び方</button><div class="title-foot">公開された7枚のカードから、世界のルールを作り上げろ。</div><div class="title-foot">1台で2人対戦も楽しめます</div></div></div>
+
+/* v61: world-rule content drives its own height; cards use remaining space. */
+@media (orientation:portrait){
+ #app{height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ .top{flex:0 0 auto}
+ .rules{
+   flex:0 0 auto; height:auto; min-height:0; max-height:clamp(64px,22dvh,196px);
+   overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+   padding:9px 10px;font-size:clamp(11px,2.85vw,13px);line-height:1.42;
+   scrollbar-width:thin;
+ }
+ #battleFeed{flex:0 0 auto}
+ .cards-zone{flex:1 1 0; height:auto;min-height:0;max-height:none;overflow:hidden;padding:4px 5px 6px}
+ .cards{flex:1 1 0;height:auto;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr));gap:4px}
+ .card{min-height:0;max-height:none;overflow:hidden;padding:2px}
+ .card .emoji{font-size:clamp(16px,4.3vw,22px)}
+ .card strong{font-size:clamp(9px,2.2vw,11px)}
+ .card .card-desc{font-size:clamp(8px,1.95vw,10px);max-height:3.5em}
+ .bottom{flex:0 0 auto;min-height:0;padding:5px}
+ .actions{gap:5px}
+ .action{min-height:44px;padding:5px 1px;font-size:clamp(10px,2.5vw,12px)}
+}
+@media (orientation:portrait) and (max-height:740px){
+ .rules{max-height:clamp(58px,20dvh,146px);padding:6px 8px}
+ .action{min-height:40px}
+}
+</style><div id="titleScreen"><div class="title-panel"><div class="title-mark">⚔️</div><h1>ルール大戦</h1><div class="title-sub">RULE BATTLE · v61</div><button class="menu-option" id="startCpu">🤖 CPU戦</button><button class="menu-option" id="startLocal">👥 対人戦</button><button class="menu-option secondary" id="openHelp">📖 遊び方</button><div class="title-foot">公開された7枚のカードから、世界のルールを作り上げろ。</div><div class="title-foot">1台で2人対戦も楽しめます</div></div></div>
 <div id="helpScreen" class="hidden"><div class="help-panel"><h2>📖 ルール大戦の遊び方</h2>
 <h3>🎯 ゲームの目的</h3><p>2人で交互にカードを獲得し、世界のルールを作りながら勝利を目指すゲームです。開始時にはHP・金貨・フィールド・勝利条件がありません。勝利条件もカードを獲得して初めて有効になります。</p>
 <h3>🃏 ターンにできること</h3><p>自分のターンには、次のいずれか<b>1つだけ</b>を選びます。</p><ol><li><b>カード取得：</b>公開中の7枚から1枚獲得。山札があれば補充されます。カードは各種類1枚だけです。</li><li><b>行動：</b>獲得済みのルールで使える行動を1回実行します。</li><li><b>リフレッシュ：</b>公開カードを入れ替えます。各プレイヤー1試合に1回までです。</li></ol>
 <h3>🌍 世界のルール</h3><p>世界ルールは基本的に<b>両プレイヤーに適用</b>されます。「HPが存在する」で両者HP5、「金貨が存在する」で両者金貨5、「フィールドが存在する」で両者の位置が0になり、終点が5に設定されます。「ゴール位置+5」が有効になると終点は10になります。</p>
 <h3>⚔️ 行動と強化</h3><p><b>攻撃：</b>相手HP−1。<b>回復：</b>自分HP＋1。<b>購入：</b>自分の金貨−1。<b>採掘：</b>自分の金貨＋1。<b>移動：</b>前後に1マス。対応するカードが有効なときだけ行動できます。</p><p>強化カードは獲得者本人だけに適用され、1人1枚までです。攻撃・回復・採掘・購入の数値がそれぞれ1増えます。移動強化後は前後1マスか2マスを選べます。なお、通常の「購入」は商品カードの取得ではなく、金貨を減らす行動です。</p>
 <h3>🏆 勝利と敗北</h3><p>勝敗条件には「HP0で敗北」「HP10以上で勝利」「金貨10枚以上で勝利」「金貨0枚で勝利」「ゴール到達で勝利」があります。<b>条件カードが獲得された時点から判定</b>されます。同じ勝利条件を両者が満たしている状態でそのカードが獲得された場合、獲得者が勝ちます。</p>
-<h3>🏪 ショップ・落とし穴・罠</h3><p><b>ショップ：</b>フィールド上の設置位置をカード取得者が選びます。設置後の購入行動はショップのある位置でのみ可能です。</p><p><b>落とし穴：</b>カード取得者だけが1回購入でき、相手を位置0に戻します。<b>罠：</b>カード取得者だけが1回購入でき、購入後は相手の各ターン開始時にHPを1減らし続けます。いずれも購入には「購入できる」ルールと必要な金貨が必要です。</p>
-<h3>📏 数値と操作</h3><p>HP・金貨は0未満にならず、上限はありません。位置は0〜終点の範囲です。カードや行動をタップすると即実行され、移動やショップ設置では位置を選びます。対人戦は1台の端末を交互に操作し、<b>光っているプレイヤー欄</b>が現在の手番です。</p>
+<h3>🏪 ショップ・落とし穴・罠</h3><p><b>ショップ：</b>フィールド上の設置位置をカード取得者が選びます。設置後の購入行動はショップのある位置でのみ可能です。</p><p><b>落とし穴：</b>カード取得者だけが1回購入でき、相手を位置0に戻します。<b>罠：</b>カード取得者だけが1回購入でき、購入後は相手のターン開始時にHPを1減らしますが、HP1未満にはなりません。フィールドがある場合は、相手が一度移動すると罠が解除されます。フィールドがない場合は継続します。いずれも購入には「購入できる」ルールと必要な金貨が必要です。</p>
+<h3>📏 数値と操作</h3><p>HP・金貨は通常0未満にならず、上限はありません（罠のダメージはHP1で止まります）。位置は0〜終点の範囲です。カードや行動をタップすると即実行され、移動やショップ設置では位置を選びます。対人戦は1台の端末を交互に操作します。</p>
 <button class="menu-option" id="closeHelp">戻る</button></div></div><div id="app"><div class="top"><section class="player" id="p0"></section><div class="center"><h1>⚔️ ルール大戦</h1><small id="turn" aria-live="polite"></small></div><section class="player" id="p1"></section></div><div class="rules" id="rules"></div><div id="battleFeed" aria-live="polite"></div><div class="cards-zone"><div class="cards-label">🃏 公開カード <span>7枚から1枚を選んで世界を変えよう！</span></div><div class="cards" id="cards"></div></div><div class="bottom"><div class="action-heading">🎲<br>アクション</div><div class="actions" id="actions"></div><div id="message"></div><button class="action" id="restart">☰ メニュー</button></div></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="ゲームの選択画面"><div class="dialog" id="dialog"></div></div><script>
 'use strict';
 const definitions=[
@@ -232,7 +258,7 @@ const definitions=[
 {id:'goalplus',icon:'🕳️',name:'ゴール位置+5',desc:'フィールドの終点が10に',type:'world'},
 {id:'shop',icon:'🏪',name:'ショップを設置できる',desc:'取得者がフィールド上の好きなマスにショップを設置',type:'special'},
 {id:'pit',icon:'🕳️',name:'落とし穴を購入できる',desc:'取得者だけが1回購入でき、相手を位置0へ戻す',type:'special'},
-{id:'trap',icon:'☠️',name:'罠を購入できる',desc:'取得者だけが1回購入でき、相手のターン開始時HP−1（最低HP1）。相手が移動すると解除',type:'special'}];
+{id:'trap',icon:'☠️',name:'罠を購入できる',desc:'取得者だけが1回購入でき、相手のターン開始時HP−1',type:'special'}];
 const byId=Object.fromEntries(definitions.map(x=>[x.id,x]));let state;let gameMode='local';let cpuBusy=false;let gameSerial=0;
 const $=id=>document.getElementById(id), rand=n=>Math.floor(Math.random()*n);
 function fresh(){gameSerial++;cpuBusy=false;hide();const deck=definitions.map(x=>x.id);for(let i=deck.length-1;i>0;i--){let j=rand(i+1);[deck[i],deck[j]]=[deck[j],deck[i]]}state={mode:gameMode,deck,visible:deck.splice(0,7),taken:[],world:[],players:[{hp:null,coin:null,pos:null,upgrade:null,refresh:1,shop:null,ownsPit:false,pitUsed:false,ownsTrap:false,trapActive:false},{hp:null,coin:null,pos:null,upgrade:null,refresh:1,shop:null,ownsPit:false,pitUsed:false,ownsTrap:false,trapActive:false}],current:0,turn:1,finished:false,history:[],traps:[],goal:5};render();}
