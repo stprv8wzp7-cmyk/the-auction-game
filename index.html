@@ -1,409 +1,209 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ルール大戦 v61</title><style>
-:root{font-family:system-ui,sans-serif;color:#f4f6ff;background:#10172a}*{box-sizing:border-box}body{margin:0}button{cursor:pointer;font:inherit;color:inherit}#app{min-height:100dvh;padding:12px;display:flex;flex-direction:column;gap:9px}.top,.bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}.player{background:#1b2945;border:1px solid #3b5278;border-radius:12px;padding:8px 13px;min-width:28%}.player.active{border-color:#ffc966}.player h2{font-size:13px;margin:0 0 5px}.player p{margin:0;font-size:13px}.center{text-align:center}.center h1{font-size:22px;margin:0}.center small{color:#aabbd8}.rules{background:#1b2945;border-radius:10px;padding:8px 10px;font-size:12px;min-height:40px}.cards{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;flex:1;min-height:90px}.card{background:#283b5c;border:1px solid #5475a2;border-radius:10px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;min-width:0}.card:disabled,.action:disabled{opacity:.35;cursor:not-allowed}.card .emoji{font-size:25px}.card strong{font-size:clamp(9px,1.8vw,13px);line-height:1.2}.actions{display:flex;flex-wrap:wrap;gap:6px}.action,.primary{border:1px solid #5678aa;background:#28446e;border-radius:8px;padding:8px 10px;font-size:12px}.primary{background:#366dc1;border-color:#6ca2f4}#message{font-size:13px;color:#d8e7ff;flex:1}.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:15px}.dialog{background:#202f4b;border:1px solid #6587b7;border-radius:14px;padding:20px;width:min(520px,95vw);max-height:90vh;overflow:auto}.dialog h2{margin-top:0}.dialog p{line-height:1.6}.dialog button{margin:5px}.hidden{display:none!important}.mode-buttons{display:flex;gap:10px;flex-wrap:wrap}.mode-buttons button{flex:1;min-width:160px}.cpu-tag{color:#ffda83}@media (orientation:portrait){#app:before{content:none;display:none}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-height:400px){#app{padding:5px;gap:5px}.card .emoji{font-size:19px}.card{padding:4px}.player{padding:5px}.rules{padding:5px;min-height:28px}.action{padding:5px 8px}}
-</style>
-<style id="ui-v2">
-:root{font-family:ui-sans-serif,system-ui,-apple-system,'Hiragino Kaku Gothic ProN',sans-serif;background:#0b1020}
-body{background:radial-gradient(ellipse at 50% 5%,#20365c 0%,#0c1529 52%,#080d1b 100%)}
-#app{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));gap:8px;max-width:1350px;margin:auto}
-.player{background:linear-gradient(145deg,#223b5e,#14243f);border:1px solid #53769e;box-shadow:inset 0 1px #ffffff16,0 5px 16px #0003;min-width:0;flex:1}
-.player.active{border-color:#f6c66c;box-shadow:0 0 0 1px #f6c66c66,0 0 18px #ffcb6630}
-.center{flex:0 0 auto}.center h1{font-size:clamp(16px,2.6vw,24px);letter-spacing:.07em;text-shadow:0 2px 12px #6292ff66}
-.rules{background:#101e37;border:1px solid #344a6a;max-height:54px;overflow:auto;line-height:1.4}
-.cards{gap:8px;min-height:106px}
-.card{position:relative;background:linear-gradient(160deg,#344d73,#1a2c4c);border:1px solid #7597c4;border-radius:11px;min-height:100px;box-shadow:0 5px 0 #0b162b,0 8px 15px #0005;transition:transform .12s,border-color .12s,filter .12s}
-.card:enabled:active,.action:enabled:active,.primary:active{transform:translateY(3px);filter:brightness(1.18)}
-.card:enabled:hover{border-color:#ffd27a;background:linear-gradient(160deg,#46628b,#253e63)}
-.card .emoji{font-size:clamp(20px,3vw,30px)}.card strong{font-size:clamp(10px,1.5vw,14px);overflow-wrap:anywhere}
-.card:disabled{opacity:.4;filter:grayscale(.65)}
-.bottom{gap:8px}.actions{flex:1;gap:7px}.action,.primary{min-height:44px;border-radius:9px;background:linear-gradient(#35577e,#233b60);border-color:#6d8fb8;box-shadow:0 3px 0 #111e36;font-size:clamp(11px,1.5vw,14px);font-weight:650}
-.action:disabled{opacity:.3;box-shadow:none}.primary{background:linear-gradient(#447ed2,#2854a0);border-color:#8fb8f4}
-#message{max-width:190px;min-width:0;flex:0 1 160px;font-size:12px;line-height:1.35}
-.dialog{background:linear-gradient(150deg,#263f62,#15233e);border:1px solid #88a5d0;box-shadow:0 20px 80px #000a;padding:22px}
-.dialog h2{font-size:21px}.dialog p{color:#d6e4ff}.dialog button{min-height:48px;min-width:112px}.card:focus-visible,.action:focus-visible,.primary:focus-visible{outline:3px solid #ffdb86;outline-offset:2px}
-.modal{z-index:20;backdrop-filter:blur(5px)}
-@media(max-height:440px){#app{gap:5px}.cards{min-height:92px}.card{min-height:90px;padding:5px 3px}.rules{max-height:40px}.player{padding:6px 9px}.action{min-height:44px;padding:5px 8px}.center h1{font-size:17px}}
-@media(max-width:700px) and (orientation:landscape){#message{display:none}.card strong{font-size:10px}.action{padding:6px}}
-</style>
-<style id="polish-v4">
-#battleFeed{background:linear-gradient(90deg,#182c4d,#1c3153);border:1px solid #48688d;border-radius:9px;min-height:29px;padding:5px 12px;color:#d5e7ff;font-size:12px;font-weight:700;text-align:center;letter-spacing:.02em}
-#battleFeed.pop{animation:feedIn .32s ease-out}@keyframes feedIn{from{opacity:.3;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
-.card.empty-slot{opacity:.35;border-style:dashed;background:#152238}.card.empty-slot:before{background:#334966}.card{overflow:hidden}.card:before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:#63a3ec}
-.card.victory-card{background:linear-gradient(160deg,#65502b,#2b2943);border-color:#c9a45e}.card.victory-card:before{background:#ffd06b}
-.card.upgrade-card{background:linear-gradient(160deg,#28564d,#173c42);border-color:#65a69c}.card.upgrade-card:before{background:#69e4b4}
-.card.special-card{background:linear-gradient(160deg,#553456,#292442);border-color:#9c75a8}.card.special-card:before{background:#d49ae8}
-.card strong{position:relative;z-index:1}.card .emoji{filter:drop-shadow(0 2px 6px #0009)}
-.player.active{animation:activeGlow 2.4s ease-in-out infinite alternate}@keyframes activeGlow{from{box-shadow:0 0 0 1px #ffc96644}to{box-shadow:0 0 16px #ffc96666}}
-.action:enabled:active,.card:enabled:active{transform:translateY(3px) scale(.985)}
-@media(max-height:430px){#app{gap:4px}.rules{max-height:36px;min-height:24px}#battleFeed{min-height:24px;padding:3px}.cards{min-height:80px}.card{min-height:80px}.bottom{min-height:38px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-</style><style id="menu-style">
-#titleScreen{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 25%,#284d7d,#101d37 58%,#090e1c);padding:16px;overflow:auto}
-.title-panel{text-align:center;width:min(540px,96vw);max-height:96dvh;overflow:auto}
-.title-mark{font-size:clamp(32px,8vh,66px);margin:0 0 2px;filter:drop-shadow(0 4px 15px #f3b94b88)}
-.title-panel h1{font-size:clamp(27px,7vh,50px);margin:0;letter-spacing:.13em;text-shadow:0 4px 25px #6c9effaa}
-.title-sub{color:#bfd0ed;letter-spacing:.2em;font-size:11px;margin:3px 0 18px}
-.menu-option{display:block;width:100%;padding:11px 18px;margin:9px auto;border:1px solid #87a7d9;border-radius:12px;background:linear-gradient(110deg,#315d9c,#1b355c);font-weight:800;font-size:clamp(15px,3.4vh,21px);box-shadow:0 4px 0 #0c1b34;min-height:46px}
-.menu-option:active{transform:translateY(3px);box-shadow:0 1px 0 #0c1b34}
-.menu-option.secondary{background:linear-gradient(110deg,#35455f,#243148)}
-.title-foot{font-size:11px;color:#9cb1d4;margin-top:15px}
-#helpScreen{position:fixed;inset:0;z-index:40;background:#080f1eeF;display:flex;align-items:center;justify-content:center;padding:12px}
-.help-panel{width:min(850px,96vw);max-height:94dvh;overflow:auto;background:linear-gradient(155deg,#243b5b,#111d32);border:1px solid #6688b9;border-radius:14px;padding:16px 20px;box-shadow:0 12px 50px #0008}
-.help-panel h2{margin:0 0 10px;color:#ffe0a1;font-size:23px}.help-panel h3{font-size:15px;margin:12px 0 4px;color:#acd1ff}
-.help-panel p,.help-panel li{font-size:13px;line-height:1.65;margin:4px 0}.help-panel ul{margin:4px 0;padding-left:22px}
-.help-panel .menu-option{max-width:240px;margin:14px auto 0;font-size:15px}
-#restart{white-space:nowrap}#choices{display:flex;flex-wrap:wrap;gap:5px}#choices button{flex:1 1 105px}.player p{line-height:1.5}
-@media(orientation:portrait){#titleScreen:before{content:none;display:none}}
-</style><style id="v9-ui">
-@media (orientation:landscape) and (max-height:430px){#app{min-height:100dvh}.top{flex-shrink:0}.cards{flex:1 0 85px}.bottom{flex-shrink:0}.action{min-height:40px}.player p{font-size:11px}.player h2{font-size:12px}}
-@media (orientation:landscape) and (max-width:760px){.center h1{font-size:16px}.player{padding:6px}.player p{font-size:11px}.card{min-height:85px}.card strong{font-size:10px}}
-#battleFeed{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.card:focus-visible,.menu-option:focus-visible{outline:3px solid #ffe19a;outline-offset:2px}
-</style><style id="v21-dialog-fix">
-.modal{overflow-y:auto;overscroll-behavior:contain;padding:10px;align-items:safe center;justify-content:center}
-.dialog{max-height:calc(100dvh - 20px);overflow-y:auto;overscroll-behavior:contain;width:min(640px,96vw);box-sizing:border-box}
-#choices{max-height:calc(100dvh - 130px);overflow-y:auto;align-content:start}
-@media (max-height:440px){.dialog{padding:10px 14px}.dialog h2{font-size:16px;margin:0 0 3px}.dialog p{font-size:12px;margin:2px 0 7px}.dialog button{min-height:38px}#choices{max-height:calc(100dvh - 92px)}}
-</style><style id="v35-card-desc">.card .card-desc{display:block;font-size:clamp(9px,1.05vw,11px);line-height:1.25;color:#e0eafa;opacity:.94;overflow-wrap:anywhere;max-height:4em;overflow:hidden}.card{gap:3px}.card strong{line-height:1.2}@media(max-height:430px){.card .card-desc{font-size:9px;max-height:2.5em}.card .emoji{font-size:18px}}</style><style id="v55-compact-landscape">
-/* 小さな横画面でも操作ボタンを画面内に収める */
-@media (orientation:landscape) and (max-height:340px){
- #app{padding-top:4px;padding-bottom:4px;gap:3px}
- .top{gap:5px}.player{padding:3px 6px}.player h2{margin-bottom:1px;font-size:10px}.player p{font-size:10px;line-height:1.2}
- .center h1{font-size:14px}.center small{font-size:10px}
- .rules{padding:3px 6px;min-height:20px;max-height:25px;font-size:10px}
- #battleFeed{min-height:20px;padding:2px 6px;font-size:10px}
- .cards{min-height:70px;flex-basis:70px;gap:4px}
- .card{min-height:70px;padding:2px;gap:2px}.card .emoji{font-size:17px}.card strong{font-size:9px}.card .card-desc{font-size:9px;line-height:1.1}
- .bottom{gap:4px}.actions{gap:3px}.action{min-height:32px;padding:3px 5px;font-size:10px}
- #restart{font-size:10px;padding:3px 5px;min-height:32px}
-}
-</style>
-<style id="board-game-v56">
-:root{color:#fff3d6;background:#203c38;font-family:system-ui,-apple-system,'Hiragino Kaku Gothic ProN',sans-serif}
-body{background:radial-gradient(ellipse at 50% -20%,#7fc6db 0%,#bce3dc 19%,transparent 39%),repeating-linear-gradient(90deg,#704629 0px,#825231 9px,#674026 17px,#78502f 27px);color:#fff3dc}
-#app{max-width:1500px;min-height:100dvh;gap:clamp(3px,1vh,9px);padding:clamp(5px,1vw,12px);background:linear-gradient(135deg,#0002,#ffffff0a 30%,#0002)}
-.top{gap:8px;background:linear-gradient(#6e4a31,#3f291e);border:3px solid #d8a64e;border-radius:16px;box-shadow:0 4px 0 #35231a, inset 0 2px #ffdb80;padding:5px}
-.player{background:linear-gradient(150deg,#146391,#07344d);border:2px solid #d5ad5a;border-radius:11px;padding:6px 9px;min-width:0;flex:1;box-shadow:inset 0 2px #ffffff55,0 3px 6px #0005}
-#p1{background:linear-gradient(150deg,#a84436,#6b252a)}
-.player.active{border-color:#fff2a5;box-shadow:0 0 0 2px #f5d26c,0 0 12px #ffd45c66}
-.player h2{font-size:clamp(11px,1.55vw,18px);margin:0 0 4px;text-shadow:0 2px #0005}
-.stat-row{display:flex;flex-wrap:nowrap;gap:4px;min-width:0}.stat{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;min-width:0;flex:1;background:#092e33c9;border:1px solid #d1b86d;border-radius:7px;padding:4px 3px;font-size:clamp(9px,1.13vw,15px);line-height:1.1}.stat b{margin-left:3px;font-size:1.1em}
-.player-extra{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:4px 0 0!important;font-size:clamp(9px,1vw,12px)!important;color:#fff0cf}
-.center{flex:0 0 23%;background:linear-gradient(#683523,#3a1c1c);border:2px solid #e6b85a;border-radius:12px;padding:4px;box-shadow:inset 0 2px #ffdb9a77}.center h1{font-size:clamp(16px,2.7vw,30px);color:#ffe3a1;text-shadow:0 2px #4d1715,1px 3px #0006}.center small{display:block;color:#fff6e3;font-weight:800;font-size:clamp(9px,1.3vw,14px)}
-.rules{flex:0 0 auto;max-height:52px;min-height:30px;overflow:auto;background:linear-gradient(90deg,#fff0c7,#e9d4a4,#fff0c7);border:3px ridge #b47b3d;border-radius:12px;color:#3f2919;font-weight:750;font-size:clamp(10px,1.25vw,14px);padding:7px 12px;box-shadow:0 3px #553521}
-#battleFeed{flex:0 0 auto;background:linear-gradient(90deg,#5a2f21,#85482d,#5a2f21);border:2px solid #d7a657;border-radius:9px;color:#ffedc1;min-height:25px;padding:4px 9px}
-.cards-zone{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(150deg,#245b4e,#103b38);border:3px solid #d7a24a;border-radius:15px;box-shadow:inset 0 0 0 3px #4b3022,0 4px 0 #3c261b;padding:6px 7px 9px;gap:5px}
-.cards-label{text-align:center;font-weight:900;color:#ffe1a2;text-shadow:0 2px #2a1c13;font-size:clamp(11px,1.7vw,17px);flex:0 0 auto}.cards-label span{font-weight:600;font-size:.75em;color:#fff0d5}
-.cards{min-height:0;flex:1;gap:clamp(3px,.8vw,10px);grid-template-columns:repeat(7,minmax(0,1fr))}
-.card{min-height:0;padding:clamp(4px,.7vw,9px) 3px;border:3px solid #a37a44;border-radius:12px;background:linear-gradient(155deg,#fff8df,#d9e9b7);color:#31241b;box-shadow:inset 0 0 0 2px #ffffffa0,0 4px 0 #483126,0 7px 10px #0005;gap:clamp(2px,.7vh,7px)}
-.card:before{height:5px;background:#70aa6d}.card.victory-card{background:linear-gradient(145deg,#fff3b7,#f3d28a);border-color:#b78636}.card.victory-card:before{background:#f4bf38}
-.card.upgrade-card{background:linear-gradient(145deg,#d6f2e0,#9ccfbf);border-color:#5b987d}.card.upgrade-card:before{background:#44ab85}
-.card.special-card{background:linear-gradient(145deg,#f8e4f7,#dcb5e5);border-color:#a875a8}.card.special-card:before{background:#c579d3}
-.card .emoji{font-size:clamp(19px,3.2vw,40px);filter:drop-shadow(0 2px 1px #0003)}
-.card strong{color:#2e241c;font-size:clamp(10px,1.2vw,16px);line-height:1.18;overflow-wrap:anywhere}
-.card .card-desc{color:#4d4033;font-size:clamp(9px,1vw,13px);max-height:4.7em;line-height:1.2;opacity:1}
-.card:enabled:hover{background:#fff4c9;border-color:#f5ca62;filter:brightness(1.05)}.card:disabled{opacity:.42}
-.bottom{flex:0 0 auto;gap:6px;background:linear-gradient(110deg,#f2d6a1,#ffeac2,#e6c28c);border:3px ridge #b47b3d;border-radius:13px;padding:6px;color:#3e2418;box-shadow:0 4px #52321f}
-.action-heading{font-size:clamp(10px,1.4vw,16px);font-weight:900;line-height:1.2;text-align:center;flex:0 0 95px;color:#6c3323}
-.actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;flex:1}
-.action,.primary{min-height:35px;padding:5px 7px;border:2px solid #b78b43;border-radius:10px;background:linear-gradient(#fff7d6,#d4b67f);color:#3e291b;font-size:clamp(10px,1.2vw,15px);font-weight:850;box-shadow:0 3px #80603c}
-.action:nth-child(1),.action:nth-child(2){background:linear-gradient(#ffe1b5,#efb08a)}.action:nth-child(6),.action:nth-child(7){background:linear-gradient(#cce9f3,#95c9db)}.action:nth-child(8){background:linear-gradient(#c5e9bc,#85bd7e)}
-.action:disabled{opacity:.4;filter:grayscale(.7);box-shadow:none}.action:enabled:active{transform:translateY(2px)}
-#message{display:none}#restart{display:none!important}
-.modal{background:#20150de0}.dialog{background:linear-gradient(150deg,#fff0c7,#dfc28f);border:4px ridge #b9843c;color:#3d2919}.dialog p{color:#543922}.dialog h2{color:#69341d}.dialog .primary{background:linear-gradient(#e7f5d5,#a8ce91)}
-#titleScreen{background:radial-gradient(ellipse at 50% 10%,#8fd1d9,#317b75 48%,#263f32);}.title-panel{background:linear-gradient(140deg,#f8e8c4,#dfbb80);border:6px ridge #b5813f;border-radius:24px;padding:18px;color:#59351e;box-shadow:0 15px 40px #0008}.title-panel h1{color:#71351e;text-shadow:0 2px #ffefc4}.title-sub,.title-foot{color:#704b2d}.menu-option{background:linear-gradient(#fff4ca,#dfb86e);border:3px solid #aa7735;color:#51351c;box-shadow:0 4px #76502d}.menu-option.secondary{background:linear-gradient(#e4f1da,#acc49c)}
-.help-panel{background:#f8ebce;color:#422d1d;border:4px ridge #b78444}.help-panel h2,.help-panel h3{color:#79421c}
-@media(orientation:landscape) and (max-height:450px){#app{gap:3px;padding:4px}.top{padding:3px}.player{padding:3px 5px}.player h2{margin-bottom:2px}.player-extra{margin-top:2px!important}.stat{padding:2px 1px}.center{padding:2px}.rules{min-height:23px;max-height:31px;padding:4px 8px}#battleFeed{min-height:20px;padding:2px 6px;font-size:10px}.cards-zone{padding:3px 5px 6px;gap:2px}.cards-label{font-size:11px}.cards{min-height:65px}.card{min-height:0;padding:3px 2px;gap:2px;border-width:2px}.card .emoji{font-size:clamp(16px,3vh,25px)}.card strong{font-size:clamp(9px,1.25vw,12px)}.card .card-desc{font-size:clamp(8px,1vw,10px);max-height:2.5em}.bottom{padding:3px}.action-heading{flex-basis:74px;font-size:10px}.action{min-height:28px;padding:3px;font-size:10px}.actions{gap:3px}}
-@media(orientation:portrait){.top{gap:3px}.center{flex-basis:25%}.stat-row{flex-direction:column}.stat{justify-content:flex-start}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.cards-zone{min-height:400px}.action-heading{display:none}}
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080e19"><title>GEMSTO | ジェムスト</title><style>
+:root{font-family:system-ui,-apple-system,'Hiragino Kaku Gothic ProN',sans-serif;color:#eaf3ff;background:#0b1425}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% -20%,#24426b,#0b1425 70%)}button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.34;cursor:not-allowed}.wrap{max-width:780px;margin:auto;padding:18px 14px 36px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.brand{font-size:19px;font-weight:900;letter-spacing:.13em}.pill{background:#1c3151;border:1px solid #3c5b82;border-radius:99px;padding:5px 10px;font-size:12px}.panel{background:#14243c;border:1px solid #2f4869;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 9px 25px #0002}.hero{text-align:center;padding:46px 10px 26px}.gem{font-size:66px;filter:drop-shadow(0 0 16px #54dbf9)}h1{font-size:clamp(34px,9vw,58px);letter-spacing:.14em;margin:7px 0 0}h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:10px 0}.muted{color:#a7bdd6}.tiny{font-size:12px}.center{text-align:center}.menu{max-width:370px;margin:auto;display:grid;gap:12px}.btn{border:1px solid #4a6a93;background:#234b79;color:white;border-radius:13px;padding:14px 17px;font-weight:750;min-height:50px}.btn:hover:not(:disabled){filter:brightness(1.12)}.btn.green{background:#1d625c;border-color:#389c91}.btn.gray{background:#2a3850;border-color:#4d607a}.btn.gold{background:#795626;border-color:#b48d45}.btn.red{background:#713d4b;border-color:#a86372}.btn.selected{outline:3px solid #edcb76;outline-offset:1px}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.actions .btn{min-height:68px}.cards{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}.card{height:105px;width:min(19vw,75px);min-width:54px;background:#fff;border:3px solid transparent;border-radius:10px;color:#111c2b;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 3px 9px #0005;font-weight:900;font-size:29px}.card.reds{color:#d1364d}.card small{font-size:19px}.card.pick{cursor:pointer}.card.pick.selected{border-color:#e8b548;transform:translateY(-5px);box-shadow:0 0 0 2px #f4d48d,0 6px 12px #0006}.score{display:grid;grid-template-columns:1fr 1fr;gap:10px}.score>div{background:#0f1e34;border-radius:12px;padding:12px;text-align:center}.score strong{font-size:27px}.notice{background:#193d51;border-left:4px solid #69d3d2;border-radius:9px;padding:12px;line-height:1.6}.warning{background:#443322;border-left-color:#e7ba64}.spaced{display:flex;justify-content:space-between;align-items:center;gap:10px}.log{max-height:170px;overflow:auto;font-size:12px;color:#b9cbe1;line-height:1.65}.log div{border-bottom:1px solid #ffffff12;padding:3px 0}.subtle{border-top:1px solid #314763;margin:15px 0}.stack{display:grid;gap:10px}.hide{display:none}.help p{line-height:1.75}.help li{margin:8px 0;line-height:1.6}.rowbuttons{display:flex;flex-wrap:wrap;gap:8px}.rowbuttons .btn{flex:1}.badge{display:inline-block;border-radius:99px;background:#345475;padding:4px 10px;font-size:12px}.top{padding:9px 5px 14px;border-bottom:1px solid #ffffff22}.brand{background:linear-gradient(95deg,#ffffff,#83e9fb);background-clip:text;color:transparent}.panel{background:linear-gradient(150deg,#172c48,#101e33);box-shadow:0 12px 28px #0004}.btn{box-shadow:inset 0 1px #ffffff24,0 5px 14px #0003;transition:transform .14s,filter .14s}.btn:active:not(:disabled){transform:scale(.975)}.card{border:1px solid #d5deec;box-shadow:0 6px 14px #0007;position:relative}.card::after{content:'◆';position:absolute;right:5px;bottom:3px;font-size:9px;opacity:.22}.card.pick:focus-visible,.btn:focus-visible{outline:3px solid #ffe19b;outline-offset:3px}.score strong{font-variant-numeric:tabular-nums}.phasebar{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin:10px 0 13px;border:1px solid #355475;border-radius:12px;background:#10253e;font-size:12px;color:#bbd9f4}.phasebar b{color:#f9d68c}.footer{font-size:11px;color:#8da5c0;text-align:center;margin-top:20px}@media(max-width:380px){.card{min-width:48px;height:94px;font-size:25px}.wrap{padding:12px 10px 28px}.panel{padding:12px}}
 
-/* v58: portrait full-screen board and current-player beacon */
-#app:before,#titleScreen:before{content:none!important;display:none!important}
-.player.active{border-color:#ffe88d!important;box-shadow:0 0 0 3px #ffe88d,0 0 18px 5px #ffda4fbd,inset 0 0 15px #ffe28b30!important;animation:turnGlow 1.6s ease-in-out infinite alternate}
-.player.active h2:after{content:' ✨';font-size:.85em}
-@keyframes turnGlow{from{box-shadow:0 0 0 2px #ffe88d,0 0 9px 2px #ffda4f90}to{box-shadow:0 0 0 3px #ffe88d,0 0 21px 6px #ffda4fd0}}
-@media(orientation:portrait){
- html,body{height:100%;overflow:hidden}
- #app{height:100dvh;min-height:0;overflow:hidden;padding:clamp(3px,1vw,7px);gap:clamp(3px,.7vh,7px)}
- .top{flex:0 0 auto;min-height:0;padding:4px;gap:4px}
- .player{min-width:0;flex:1 1 0;padding:4px 5px;border-width:2px;border-radius:10px}
- .player h2{font-size:clamp(10px,2.7vw,13px);margin-bottom:3px}
- .center{flex:0 0 24%;min-width:0;padding:2px}
- .center h1{font-size:clamp(11px,3.3vw,17px);line-height:1.12}
- .center small{font-size:clamp(9px,2.3vw,11px);line-height:1.2}
- .stat-row{flex-direction:column;gap:2px}
- .stat{font-size:clamp(9px,2.35vw,12px);padding:2px 3px;justify-content:flex-start;flex:none;min-height:20px}
- .player-extra{font-size:9px!important;line-height:1.15;margin-top:2px!important}
- .rules{flex:0 0 auto;min-height:0;max-height:36px;padding:4px 7px;font-size:clamp(10px,2.4vw,12px);line-height:1.3}
- #battleFeed{flex:0 0 auto;min-height:0;padding:3px 6px;font-size:clamp(10px,2.5vw,12px);line-height:1.2}
- .cards-zone{flex:1 1 0;min-height:0;padding:4px;gap:3px;overflow:hidden}
- .cards-label{font-size:clamp(10px,2.7vw,13px);line-height:1.2}
- .cards-label span{font-size:.78em}
- .cards{flex:1 1 0;min-height:0;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:4px;overflow:hidden}
- .card{min-height:0;max-height:none;padding:2px;border-width:2px;border-radius:9px;gap:2px;overflow:hidden}
- .card:before{height:3px}
- .card .emoji{font-size:clamp(17px,4.5vw,26px);line-height:1}
- .card strong{font-size:clamp(9px,2.35vw,12px);line-height:1.1}
- .card .card-desc{font-size:clamp(8px,2.05vw,11px);line-height:1.15;max-height:3.45em}
- .bottom{flex:0 0 auto;min-height:0;padding:4px;gap:0}
- .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
- .action{min-height:clamp(27px,4.3vh,38px);padding:3px 1px;font-size:clamp(9px,2.35vw,12px);border-width:2px;border-radius:8px}
- .action-heading{display:none}
- .modal{padding:8px}.dialog{max-height:85dvh}
-}
-@media(orientation:portrait) and (max-height:740px){.player-extra{display:none}.card .card-desc{max-height:2.3em}.rules{max-height:28px}.card .emoji{font-size:17px}.action{min-height:26px}}
+/* v0.3: single-screen mobile play layout; help is allowed to scroll */
+body.playing{height:100dvh;overflow:hidden}
+body.playing .wrap{height:100dvh;display:flex;flex-direction:column;max-width:760px;padding:6px 10px max(5px,env(safe-area-inset-bottom));gap:5px;overflow:hidden}
+body.playing .top{flex:none;padding:2px 3px 5px;margin:0;min-height:27px}
+body.playing .brand{font-size:15px}
+body.playing .pill{font-size:10px;padding:3px 8px}
+body.playing .phasebar{flex:none;margin:0;padding:5px 9px;font-size:11px}
+body.playing .score{flex:none;gap:6px}
+body.playing .score>div{padding:5px 7px;border:1px solid #314d70}
+body.playing .score strong{font-size:19px}
+body.playing .panel{margin:0;padding:8px 10px;border-radius:12px;box-shadow:0 3px 9px #0003}
+body.playing h2{font-size:15px;margin:0 0 5px}
+body.playing h3{font-size:13px;margin:3px 0 5px}
+body.playing p{margin:5px 0}
+body.playing .cards{gap:4px;flex-wrap:nowrap}
+body.playing .card{width:clamp(40px,12vw,65px);min-width:0;height:clamp(54px,10.5dvh,83px);font-size:clamp(19px,5vw,27px);border-radius:7px}
+body.playing .card small{font-size:clamp(13px,3.5vw,18px)}
+body.playing .actions{gap:6px}
+body.playing .actions .btn{min-height:46px;padding:6px 8px}
+body.playing .btn{min-height:34px;padding:7px 10px;font-size:13px;border-radius:9px}
+body.playing .footer{display:none}
+body.playing .history{margin-top:3px;font-size:11px}
+body.playing .history summary{cursor:pointer;color:#b7d9ee}
+body.playing .history[open] .log{max-height:70px;overflow:auto}
+body.playing .notice{padding:7px;font-size:12px}
+body.playing .subtle{margin:5px 0}
+body.playing .gem{font-size:30px}
+body.playing .tiny{font-size:10px}
+body.playing .wrap>.panel:nth-last-child(2){min-height:0;overflow:auto}
+@media(max-height:720px){body.playing .wrap{gap:3px;padding-top:3px}body.playing .panel{padding:5px 8px}body.playing .card{height:clamp(45px,9dvh,66px)}body.playing .actions .btn{min-height:39px}body.playing .phasebar{padding:3px 7px}body.playing .score>div{padding:3px}body.playing .score strong{font-size:17px}}
+@media(max-height:570px){body.playing .card{height:43px;font-size:17px}body.playing .card small{font-size:12px}body.playing .actions .btn{min-height:32px}body.playing .wrap{gap:2px}body.playing .panel{padding:4px 7px}}
 
-/* v58: portrait space allocation — readable rules and usable action controls */
-@media (orientation:portrait){
- #app{gap:5px}
- .top{padding:3px 4px}
- .rules{flex:0 0 auto;min-height:55px;max-height:84px;overflow-y:auto;overscroll-behavior:contain;padding:8px 10px;font-size:clamp(11px,2.9vw,13px);line-height:1.45;scrollbar-width:thin}
- #battleFeed{min-height:25px;padding:5px 7px;font-size:clamp(11px,2.8vw,13px)}
- .cards-zone{flex:1 1 0;min-height:0;padding:5px;gap:3px}
- .cards{align-content:stretch;gap:5px}
- .card{justify-content:center;padding:3px 2px;gap:3px}
- .card .emoji{font-size:clamp(17px,5vw,23px)}
- .card strong{font-size:clamp(9px,2.3vw,11px)}
- .card .card-desc{font-size:clamp(8px,2vw,10px);max-height:3.5em}
- .bottom{flex:0 0 auto;padding:8px 6px;min-height:104px}
- .actions{gap:6px}
- .action{min-height:clamp(40px,5.6vh,50px);font-size:clamp(10px,2.6vw,13px);padding:5px 2px;line-height:1.15}
-}
-@media (orientation:portrait) and (max-height:740px){
- .rules{min-height:46px;max-height:64px}
- .bottom{min-height:86px;padding:5px}
- .action{min-height:35px}
- .card .emoji{font-size:16px}
-}
+/* v0.4: refined graphite / ice-blue visual system */
+:root{color-scheme:dark;--bg:#080e19;--surface:#101b2a;--line:#29384d;--accent:#8de7f0;--ink:#f3f7fd;--muted:#9daec2}
+body{background:radial-gradient(ellipse at 52% -18%,#1b3249 0%,#0b1421 46%,#080e19 88%);color:var(--ink)}
+.top{border-bottom:1px solid #ffffff18}.brand{background:linear-gradient(90deg,#fff 10%,#a3f1f5 90%);background-clip:text;letter-spacing:.18em}
+.panel{background:linear-gradient(145deg,#172335,#0e1827 85%);border:1px solid #334257;border-radius:16px;box-shadow:0 10px 32px #0005,inset 0 1px #ffffff0a}
+.pill,.badge{background:#172738;border:1px solid #33465a;color:#c3d9e7}
+.btn{background:linear-gradient(160deg,#294b69,#1b3651);border:1px solid #53748c;border-radius:12px;color:#f6fcff;box-shadow:inset 0 1px #ffffff20,0 5px 15px #0005;letter-spacing:.02em}
+.btn.green{background:linear-gradient(145deg,#155d61,#164247);border-color:#348b8c}.btn.gray{background:linear-gradient(145deg,#273447,#1a2535);border-color:#435469}.btn.gold{background:linear-gradient(145deg,#745a2d,#514020);border-color:#ab8747}.btn.red{background:linear-gradient(145deg,#70404e,#4e2d3c);border-color:#a05b70}
+.btn.selected{outline:2px solid #9ceaf0}.btn:focus-visible,.card.pick:focus-visible{outline:2px solid #a5f4f7;outline-offset:2px}
+.card{background:linear-gradient(155deg,#ffffff,#e9eff5);border:1px solid #d8e2ed;border-radius:9px;box-shadow:0 5px 13px #0007;color:#1b2635}
+.card.reds{color:#bf354e}.card.pick.selected{border-color:#2baab8;box-shadow:0 0 0 2px #77e4e8,0 8px 17px #0009}
+.score>div{background:linear-gradient(160deg,#101f30,#0b1726);border:1px solid #2e4258}.score strong{color:#e6faff}
+.phasebar{background:#102031;border-color:#30485b;color:#bad2e2}.phasebar b{color:#8de7f0}
+.notice{background:#12323d;border-left-color:#79d8e0}.warning{background:#443322;border-left-color:#e7ba64}.muted{color:var(--muted)}
+.gem{filter:drop-shadow(0 0 22px #66d8ec70)}.hero h1{font-weight:850;letter-spacing:.21em;text-shadow:0 0 28px #65d4f633}
+body.playing .wrap{padding-top:max(5px,env(safe-area-inset-top));padding-bottom:max(5px,env(safe-area-inset-bottom))}
+body.playing .panel{border-radius:12px}
+body.playing .wrap>.panel:nth-last-child(2){scrollbar-width:thin;scrollbar-color:#41596e transparent}
+@media(max-width:380px){body.playing .brand{font-size:13px}body.playing .card{width:clamp(37px,11.5vw,55px)}}
+@media(max-height:660px){body.playing .panel{padding:5px 7px}body.playing .score strong{font-size:16px}body.playing .notice{padding:5px}body.playing h2{font-size:14px}}
 
-/* v59: compact public cards and always-visible player equipment / trap status */
-.player-badges{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-top:5px}
-.status-badge{display:inline-flex;align-items:center;white-space:nowrap;border:1px solid #d3ae66;background:#183a3b;color:#fff1cf;border-radius:5px;padding:2px 5px;font-size:clamp(9px,1.1vw,12px);line-height:1.2;font-weight:700}
-.status-badge.upgrade-status{background:#305e55;border-color:#b4dbb0}
-.status-badge.trap-ready{background:#625035;border-color:#f1c568}
-.status-badge.trap-on{background:#7b2742;border-color:#ff8cab;color:#fff}
-.status-badge.trap-danger{background:#872d25;border-color:#ffc36a;color:#fff}
-@media(orientation:portrait){
- .top{padding:3px 4px}
- .player{padding:4px 5px}
- .player-badges{margin-top:3px;gap:2px}
- .status-badge{font-size:clamp(8px,2vw,10px);padding:2px 3px}
- .cards-zone{flex:0 1 auto;height:clamp(235px,41dvh,345px);min-height:0;overflow:hidden}
- .cards{height:100%;flex:1 1 auto;grid-template-rows:repeat(2,minmax(0,1fr))}
- .card{min-height:0}
- .rules{flex:1 1 auto;min-height:55px;max-height:none;overflow-y:auto}
- .bottom{flex:0 0 auto}
-}
-@media(orientation:portrait) and (max-height:740px){
- .cards-zone{height:37dvh;min-height:185px}
- .rules{min-height:38px;max-height:none}
- .status-badge{font-size:8px}
-}
-@media(orientation:landscape){.player-badges{margin-top:3px}.status-badge{font-size:9px;padding:1px 3px}}
+/* v0.5: compact game HUD and stable viewport layout */
+body.playing .utility{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;min-height:30px}
+body.playing .utility .history{flex:1;position:relative;min-width:0}
+body.playing .utility .history[open] .log{position:absolute;bottom:100%;left:0;width:min(330px,85vw);max-height:180px;overflow:auto;background:#101b2a;border:1px solid #41596e;border-radius:10px;padding:8px;z-index:5;box-shadow:0 10px 25px #0009}
+body.playing .utility .btn{min-height:28px;padding:4px 12px;font-size:11px}
+body.playing .wrap{gap:4px}
+body.playing .panel{flex-shrink:1;min-height:0;overflow:auto}
+body.playing .cards{flex-shrink:0}
+body.playing .card{height:clamp(45px,9.5dvh,76px)}
+body.playing .actions .btn{min-height:clamp(35px,6.8dvh,52px)}
+body.playing .score strong{font-size:clamp(16px,2.9dvh,23px)}
+body.playing .panel:has(.actions){flex:1;display:flex;flex-direction:column;justify-content:center}
+body.playing .panel:has(.actions) .actions{margin-top:auto}
+@media(max-height:620px){body.playing .card{height:42px}body.playing .actions .btn{min-height:32px}body.playing .panel{padding:4px 7px}}
 
-/* v61: world-rule content drives its own height; cards use remaining space. */
-@media (orientation:portrait){
- #app{height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
- .top{flex:0 0 auto}
- .rules{
-   flex:0 0 auto; height:auto; min-height:0; max-height:clamp(64px,22dvh,196px);
-   overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
-   padding:9px 10px;font-size:clamp(11px,2.85vw,13px);line-height:1.42;
-   scrollbar-width:thin;
- }
- #battleFeed{flex:0 0 auto}
- .cards-zone{flex:1 1 0; height:auto;min-height:0;max-height:none;overflow:hidden;padding:4px 5px 6px}
- .cards{flex:1 1 0;height:auto;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr));gap:4px}
- .card{min-height:0;max-height:none;overflow:hidden;padding:2px}
- .card .emoji{font-size:clamp(16px,4.3vw,22px)}
- .card strong{font-size:clamp(9px,2.2vw,11px)}
- .card .card-desc{font-size:clamp(8px,1.95vw,10px);max-height:3.5em}
- .bottom{flex:0 0 auto;min-height:0;padding:5px}
- .actions{gap:5px}
- .action{min-height:44px;padding:5px 1px;font-size:clamp(10px,2.5vw,12px)}
+/* v0.6: compact one-screen match layout, keep the action region visible */
+body.playing{height:100dvh;overflow:hidden}
+body.playing .wrap{height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+body.playing .top,body.playing .phasebar,body.playing .score,body.playing .footer,body.playing .utility{flex-shrink:0}
+body.playing .footer{display:none}
+body.playing .panel{padding:clamp(5px,1.2dvh,12px);margin:0;overflow:auto;flex-shrink:1}
+body.playing .panel h2{font-size:clamp(13px,2.1dvh,20px);margin:0 0 4px}
+body.playing .panel h3{font-size:clamp(12px,1.9dvh,17px);margin:0 0 3px}
+body.playing .panel p{margin:2px 0}
+body.playing .cards{gap:clamp(3px,1vw,8px)}
+body.playing .card{height:clamp(35px,8.5dvh,69px);min-height:0}
+body.playing .actions{gap:clamp(3px,.8dvh,8px)}
+body.playing .actions .btn{min-height:clamp(31px,5.6dvh,47px)}
+body.playing .utility{margin-top:auto}
+body.playing .score{padding:clamp(3px,.7dvh,8px)}
+body.playing .phasebar{padding:clamp(3px,.7dvh,8px)}
+@media(max-height:700px){body.playing .panel .muted.tiny{display:none}body.playing .card{height:clamp(32px,7.5dvh,52px)}body.playing .actions .btn{min-height:32px}}
+@media(max-height:570px){body.playing .panel{padding:3px 6px}body.playing .card{height:32px}body.playing .top{padding:2px}body.playing .actions .btn{min-height:28px}}
+/* v0.7: legibility, safe-area and compact action layout */
+body.playing .wrap{width:100%;max-width:780px}
+body.playing .cards{width:100%;justify-content:center}
+body.playing .card{flex:0 1 64px;width:min(17.5vw,64px);max-width:64px}
+body.playing .card.pick{border:2px solid #77cdd9}
+body.playing .card.pick.selected{border-color:#f0c96e}
+body.playing .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.playing .actions .btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.playing .score>div{min-width:0}
+body.playing .score .muted{overflow-wrap:anywhere}
+body.playing .utility{position:relative;z-index:2}
+@media(max-height:620px){body.playing .top{min-height:22px}body.playing .score>div{padding:2px 5px}body.playing .card{height:clamp(32px,7dvh,43px)}body.playing .actions .btn{min-height:32px}body.playing .panel{padding:4px 7px}}
+/* v0.9: avoid clipped controls while retaining a single viewport */
+body.playing .panel{scrollbar-width:thin;scrollbar-color:#3a6576 transparent}
+body.playing .panel:focus-within{outline:1px solid #79d8e055}
+body.playing .panel .rowbuttons{flex-shrink:0}
+@media(max-height:620px){body.playing .panel.center{overflow:auto}body.playing .btn{line-height:1.2}}
+/* v0.10: unobtrusive event feedback and touch ergonomics */
+body.playing .eventline{flex:0 0 auto;min-height:20px;max-height:28px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 10px;border:1px solid #2b4659;border-radius:8px;background:#0d2231;color:#c0e6ed;font-size:11px}
+body.playing button{touch-action:manipulation}
+body.playing .card.pick:active,body.playing .btn:active{transform:scale(.97)}
+body.playing .card.pick{cursor:pointer}
+body.playing .card:disabled{opacity:1}
+body.playing .score{margin:0}
+@media(max-height:650px){body.playing .eventline{min-height:17px;max-height:20px;padding:2px 8px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* v0.12: compact hand rows and restrained premium highlights */
+body.playing .hands-panel{display:flex;flex-direction:column;justify-content:center;gap:3px}
+body.playing .handrow{display:grid;grid-template-columns:minmax(68px,92px) minmax(0,1fr);align-items:center;gap:4px;min-height:0}
+body.playing .handname{font-size:clamp(10px,1.7dvh,13px);font-weight:700;color:#b8d7e3;line-height:1.3}
+body.playing .handrow .cards{justify-content:flex-end}
+body.playing .handrow .card{width:min(15.5vw,57px);flex:0 1 57px}
+body.playing .point-unit{font-size:10px;font-weight:500;color:#86a8bc}
+body.playing .score>div:first-child{border-color:#3e7b8b}
+body.playing .score>div:last-child{border-color:#4b5878}
+body.playing .phasebar{letter-spacing:.025em}
+body.playing .actions .btn{font-weight:800}
+@media(max-width:360px){body.playing .handrow{grid-template-columns:65px minmax(0,1fr)}body.playing .handrow .card{width:min(15vw,49px)}}
+@media(max-height:620px){body.playing .handrow{gap:2px}body.playing .hands-panel{gap:1px}body.playing .handname{font-size:10px}}
+/* v0.13: crisp premium finish and prominent end-of-round score */
+body.playing .result-panel{background:linear-gradient(150deg,#122b3b,#111c2b 65%,#1b2037);border:1px solid #4a8495;box-shadow:inset 0 1px 0 #ffffff15,0 10px 26px #00000028}
+body.playing .result-scores{font-size:clamp(24px,5dvh,40px);font-weight:900;letter-spacing:.06em;color:#e9f9ff;line-height:1.1;margin:5px 0 8px;font-variant-numeric:tabular-nums}
+body.playing .result-scores span{color:#76c7d8;padding:0 12px;font-weight:400}
+body.playing .actions .btn:focus-visible,body.playing .card.pick:focus-visible{outline:3px solid #9ce9f4;outline-offset:2px}
+body.playing .handrow{border-bottom:1px solid #ffffff0c;padding:2px 0}
+body.playing .handrow:last-child{border-bottom:0}
+@media(max-height:620px){body.playing .result-panel .gem{font-size:22px}body.playing .result-panel h2{margin:3px 0}body.playing .result-scores{margin:2px 0}}
+/* v0.14: clear decisions, responsive text, visual hierarchy */
+body.playing .phasebar{border-color:#3c657a;background:linear-gradient(100deg,#112b3e,#102039)}
+body.playing .notice{overflow-wrap:anywhere}
+body.playing .panel h2{color:#e7f8ff}
+body.playing .rowbuttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body.playing .rowbuttons .btn{min-width:0;white-space:normal}
+body.playing .handname{overflow-wrap:anywhere}
+body.playing .cards{min-width:0}
+body.playing .card.pick.selected{box-shadow:0 0 0 2px #e5c57c,0 0 16px #d9b65d50;transform:translateY(-2px)}
+@media(max-height:620px){body.playing .rowbuttons .btn{padding:4px 6px;font-size:12px}}
+/* v0.15: compact game state and safer touch controls */
+body.playing .actions .btn:disabled{opacity:.38;filter:saturate(.4)}
+body.playing .phasebar{font-variant-numeric:tabular-nums}
+body.playing .panel .notice{border-left:3px solid #7dd7e2}
+body.playing .cards .card.pick{min-width:0}
+body.playing .btn{user-select:none;-webkit-user-select:none}
+@media(max-height:600px){body.playing .hands-panel h3{margin:0}body.playing .panel{gap:3px}body.playing .handrow .card{height:32px}}
+/* v0.16: compact interactive controls and more legible typography */
+body.playing .actions .btn{letter-spacing:.015em}
+body.playing .card.pick{transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
+body.playing .panel h2{line-height:1.22}
+body.playing .phasebar b{color:#c6f6ff}
+@media(max-width:390px){body.playing .actions .btn{font-size:clamp(11px,3.5vw,14px)}body.playing .handname{font-size:11px}}
+@media(max-height:640px){body.playing .footer{font-size:9px;padding:1px}body.playing .eventline{min-height:17px}body.playing .panel h2{font-size:clamp(14px,2.5dvh,19px)}}
+/* v0.18: readable tap targets, compact status, accessibility */
+body.playing .phasebar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+body.playing .phasebar span{min-width:0}
+body.playing .card.pick:focus-visible,body.playing .btn:focus-visible{outline:2px solid #b7f4ff;outline-offset:2px}
+body.playing .notice{line-height:1.4}
+@media(max-height:670px){body.playing .panel{margin-block:3px}body.playing .hands-panel{padding-block:4px}body.playing .eventline{max-height:22px}}
+/* v0.34: previous actions are public and matter for predicting forced explore */
+.handname .last-action{display:block;font-size:10px;font-weight:500;color:#8fb6c4;line-height:1.5;white-space:nowrap}
+@media(max-width:390px){.handname .last-action{font-size:9px}}
+
+/* v0.52: short landscape viewports — reserve space for actionable controls */
+@media (orientation:landscape) and (max-height:520px){
+ body.playing .wrap{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));gap:2px}
+ body.playing .top{min-height:20px;padding:0 2px}
+ body.playing .brand{font-size:12px}
+ body.playing .phasebar{font-size:10px;padding:2px 6px}
+ body.playing .score>div{padding:2px 5px}
+ body.playing .score strong{font-size:14px}
+ body.playing .eventline{font-size:10px;min-height:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ body.playing .hands-panel{gap:1px;padding:2px 6px}
+ body.playing .hands-panel h3{font-size:11px;margin:0}
+ body.playing .handrow{padding:0;min-height:0}
+ body.playing .handrow .card{height:clamp(24px,7dvh,36px);font-size:15px}
+ body.playing .handrow .card small{font-size:10px}
+ body.playing .handname .last-action{font-size:8px}
+ body.playing .panel:has(.actions){min-height:90px;flex:1 1 90px}
+ body.playing .panel:has(.actions) .actions{margin-top:2px}
+ body.playing .actions .btn{min-height:29px;padding:3px 5px;font-size:12px}
+ body.playing .utility{min-height:24px}
+ body.playing .notice{padding:3px 6px;font-size:11px}
+ body.playing .panel{padding:3px 7px}
 }
-@media (orientation:portrait) and (max-height:740px){
- .rules{max-height:clamp(58px,20dvh,146px);padding:6px 8px}
- .action{min-height:40px}
+@media (max-width:350px){
+ body.playing .handrow{grid-template-columns:60px minmax(0,1fr)}
+ body.playing .handrow .cards{gap:2px}
+ body.playing .handrow .card{width:min(14.8vw,44px);font-size:17px}
+ body.playing .handrow .card small{font-size:11px}
 }
-</style><div id="titleScreen"><div class="title-panel"><div class="title-mark">⚔️</div><h1>ルール大戦</h1><div class="title-sub">RULE BATTLE · v61</div><button class="menu-option" id="startCpu">🤖 CPU戦</button><button class="menu-option" id="startLocal">👥 対人戦</button><button class="menu-option secondary" id="openHelp">📖 遊び方</button><div class="title-foot">公開された7枚のカードから、世界のルールを作り上げろ。</div><div class="title-foot">1台で2人対戦も楽しめます</div></div></div>
-<div id="helpScreen" class="hidden"><div class="help-panel"><h2>📖 ルール大戦の遊び方</h2>
-<h3>🎯 ゲームの目的</h3><p>2人で交互にカードを獲得し、世界のルールを作りながら勝利を目指すゲームです。開始時にはHP・金貨・フィールド・勝利条件がありません。勝利条件もカードを獲得して初めて有効になります。</p>
-<h3>🃏 ターンにできること</h3><p>自分のターンには、次のいずれか<b>1つだけ</b>を選びます。</p><ol><li><b>カード取得：</b>公開中の7枚から1枚獲得。山札があれば補充されます。カードは各種類1枚だけです。</li><li><b>行動：</b>獲得済みのルールで使える行動を1回実行します。</li><li><b>リフレッシュ：</b>公開カードを入れ替えます。各プレイヤー1試合に1回までです。</li></ol>
-<h3>🌍 世界のルール</h3><p>世界ルールは基本的に<b>両プレイヤーに適用</b>されます。「HPが存在する」で両者HP5、「金貨が存在する」で両者金貨5、「フィールドが存在する」で両者の位置が0になり、終点が5に設定されます。「ゴール位置+5」が有効になると終点は10になります。</p>
-<h3>⚔️ 行動と強化</h3><p><b>攻撃：</b>相手HP−1。<b>回復：</b>自分HP＋1。<b>購入：</b>自分の金貨−1。<b>採掘：</b>自分の金貨＋1。<b>移動：</b>前後に1マス。対応するカードが有効なときだけ行動できます。</p><p>強化カードは獲得者本人だけに適用され、1人1枚までです。攻撃・回復・採掘・購入の数値がそれぞれ1増えます。移動強化後は前後1マスか2マスを選べます。なお、通常の「購入」は商品カードの取得ではなく、金貨を減らす行動です。</p>
-<h3>🏆 勝利と敗北</h3><p>勝敗条件には「HP0で敗北」「HP10以上で勝利」「金貨10枚以上で勝利」「金貨0枚で勝利」「ゴール到達で勝利」があります。<b>条件カードが獲得された時点から判定</b>されます。同じ勝利条件を両者が満たしている状態でそのカードが獲得された場合、獲得者が勝ちます。</p>
-<h3>🏪 ショップ・落とし穴・罠</h3><p><b>ショップ：</b>フィールド上の設置位置をカード取得者が選びます。設置後の購入行動はショップのある位置でのみ可能です。</p><p><b>落とし穴：</b>カード取得者だけが1回購入でき、相手を位置0に戻します。<b>罠：</b>カード取得者だけが1回購入でき、購入後は相手のターン開始時にHPを1減らしますが、HP1未満にはなりません。フィールドがある場合は、相手が一度移動すると罠が解除されます。フィールドがない場合は継続します。いずれも購入には「購入できる」ルールと必要な金貨が必要です。</p>
-<h3>📏 数値と操作</h3><p>HP・金貨は通常0未満にならず、上限はありません（罠のダメージはHP1で止まります）。位置は0〜終点の範囲です。カードや行動をタップすると即実行され、移動やショップ設置では位置を選びます。対人戦は1台の端末を交互に操作します。</p>
-<button class="menu-option" id="closeHelp">戻る</button></div></div><div id="app"><div class="top"><section class="player" id="p0"></section><div class="center"><h1>⚔️ ルール大戦</h1><small id="turn" aria-live="polite"></small></div><section class="player" id="p1"></section></div><div class="rules" id="rules"></div><div id="battleFeed" aria-live="polite"></div><div class="cards-zone"><div class="cards-label">🃏 公開カード <span>7枚から1枚を選んで世界を変えよう！</span></div><div class="cards" id="cards"></div></div><div class="bottom"><div class="action-heading">🎲<br>アクション</div><div class="actions" id="actions"></div><div id="message"></div><button class="action" id="restart">☰ メニュー</button></div></div><div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="ゲームの選択画面"><div class="dialog" id="dialog"></div></div><script>
-'use strict';
-const definitions=[
-{id:'hp',icon:'❤️',name:'HPが存在する',desc:'両者にHP5を設定',type:'world'},
-{id:'coin',icon:'💰',name:'金貨が存在する',desc:'両者に金貨5を設定',type:'world'},
-{id:'field',icon:'🗺️',name:'フィールドが存在する',desc:'位置0〜5を設定',type:'world'},
-{id:'attack',icon:'⚔️',name:'攻撃できる',desc:'相手HP−1',type:'world'},
-{id:'heal',icon:'💚',name:'回復できる',desc:'自分HP＋1',type:'world'},
-{id:'buy',icon:'🛒',name:'購入できる',desc:'自分の金貨−1',type:'world'},
-{id:'mine',icon:'⛏️',name:'採掘できる',desc:'自分の金貨＋1',type:'world'},
-{id:'move',icon:'🏃',name:'移動できる',desc:'位置を±1動かす',type:'world'},
-{id:'losehp',icon:'☠️',name:'HP0で敗北',desc:'HP0以下で敗北',type:'condition'},
-{id:'winhp',icon:'❤️',name:'HP10以上で勝利',desc:'HP10以上で勝利',type:'condition'},
-{id:'wincoin',icon:'💰',name:'金貨10枚以上で勝利',desc:'金貨10枚以上で勝利',type:'condition'},
-{id:'winzero',icon:'💰',name:'金貨0枚で勝利',desc:'金貨0枚で勝利',type:'condition'},
-{id:'wingoal',icon:'🏁',name:'ゴール到達で勝利',desc:'フィールド終点に到達で勝利',type:'condition'},
-{id:'atkplus',icon:'⚔️',name:'攻撃力+1',desc:'攻撃ダメージが2に',type:'upgrade'},
-{id:'healplus',icon:'💚',name:'回復力+1',desc:'回復量が2に',type:'upgrade'},
-{id:'mineplus',icon:'⛏️',name:'採掘力+1',desc:'採掘量が2に',type:'upgrade'},
-{id:'buyplus',icon:'🛒',name:'購入価格+1',desc:'購入時の金貨減少が2に',type:'upgrade'},
-{id:'moveplus',icon:'🏃',name:'移動力+1',desc:'前後に1または2マス移動可能',type:'upgrade'},
-{id:'coinattack',icon:'💰',name:'攻撃されると金貨−1',desc:'被攻撃時に金貨も1減る',type:'world'},
-{id:'samerange',icon:'🚫',name:'同じマスでないと攻撃できない',desc:'攻撃対象と同じ位置が必要',type:'world'},
-{id:'goalplus',icon:'🕳️',name:'ゴール位置+5',desc:'フィールドの終点が10に',type:'world'},
-{id:'shop',icon:'🏪',name:'ショップを設置できる',desc:'取得者がフィールド上の好きなマスにショップを設置',type:'special'},
-{id:'pit',icon:'🕳️',name:'落とし穴を購入できる',desc:'取得者だけが1回購入でき、相手を位置0へ戻す',type:'special'},
-{id:'trap',icon:'☠️',name:'罠を購入できる',desc:'取得者だけが1回購入でき、相手のターン開始時HP−1',type:'special'}];
-const byId=Object.fromEntries(definitions.map(x=>[x.id,x]));let state;let gameMode='local';let cpuBusy=false;let gameSerial=0;
-const $=id=>document.getElementById(id), rand=n=>Math.floor(Math.random()*n);
-function fresh(){gameSerial++;cpuBusy=false;hide();const deck=definitions.map(x=>x.id);for(let i=deck.length-1;i>0;i--){let j=rand(i+1);[deck[i],deck[j]]=[deck[j],deck[i]]}state={mode:gameMode,deck,visible:deck.splice(0,7),taken:[],world:[],players:[{hp:null,coin:null,pos:null,upgrade:null,refresh:1,shop:null,ownsPit:false,pitUsed:false,ownsTrap:false,trapActive:false},{hp:null,coin:null,pos:null,upgrade:null,refresh:1,shop:null,ownsPit:false,pitUsed:false,ownsTrap:false,trapActive:false}],current:0,turn:1,finished:false,history:[],traps:[],goal:5};render();}
-function has(id){return state.world.includes(id)}function current(){return state.players[state.current]}function enemy(){return state.players[1-state.current]}function floor(v){return Math.max(0,v)}function cardAvailable(id){const d=byId[id];return !!d&&(d.type!=='upgrade'||!current().upgrade)&&(id!=='shop'||has('field'))}
-function draw(){if(state.deck.length)return state.deck.shift();return null}
-function atShop(p){return !state.players.some(x=>x.shop!==null)||state.players.some(x=>x.shop!==null&&x.shop===p.pos)}
-function legalAction(name){if(!state||state.finished)return false;const p=current(),e=enemy();if(name==='attack')return has('attack')&&p.hp!==null&&e.hp!==null&&(!has('samerange')||(p.pos!==null&&p.pos===e.pos));if(name==='heal')return has('heal')&&p.hp!==null;if(name==='buy')return has('buy')&&p.coin!==null&&p.coin>=(p.upgrade==='buyplus'?2:1)&&atShop(p);if(name==='trap')return p.ownsTrap&&!p.trapActive&&has('buy')&&p.coin!==null&&p.coin>=(p.upgrade==='buyplus'?2:1)&&atShop(p)&&e.hp!==null;if(name==='pit')return p.ownsPit&&!p.pitUsed&&has('buy')&&p.coin!==null&&p.coin>=(p.upgrade==='buyplus'?2:1)&&atShop(p)&&e.pos!==null;if(name==='mine')return has('mine')&&p.coin!==null;return false}
-// 勝利条件カード取得時は取得者を先に判定（同時達成は取得者勝利）。
-function checkVictory(preferred=null){const p=state.players;for(let i=0;i<2;i++){if(has('losehp')&&p[i].hp!==null&&p[i].hp===0)return end(1-i,'HP0で敗北');}for(const i of (preferred===null?[0,1]:[preferred,1-preferred])){if(has('winhp')&&p[i].hp!==null&&p[i].hp>=10)return end(i,'HP10以上で勝利');if(has('wincoin')&&p[i].coin!==null&&p[i].coin>=10)return end(i,'金貨10枚以上で勝利');if(has('winzero')&&p[i].coin!==null&&p[i].coin===0)return end(i,'金貨0枚で勝利');if(has('wingoal')&&p[i].pos!==null&&p[i].pos===state.goal)return end(i,'ゴール到達で勝利');}return false}
-function end(winner,reason){state.finished=true;cpuBusy=false;render();show('🏆 '+(state.mode==='cpu'?(winner===0?'あなた':'CPU'):'プレイヤー'+(winner+1))+'の勝利！','決着：'+reason,[['もう一度遊ぶ',()=>{hide();fresh()}],['タイトルへ',chooseMode]]);return true}
-function log(s){state.history.unshift(s);state.history=state.history.slice(0,10)}
-function take(i){
- if(state.finished)return;const id=state.visible[i];if(!id||!cardAvailable(id))return;
- const d=byId[id];
- if(id==='shop'){if(!has('field'))return;return chooseShop(i)}
- state.visible.splice(i,1);state.taken.push(id);
- if(d.type==='upgrade')current().upgrade=id;
- else if(d.type==='special'){
-   if(id==='shop')current().shop=current().pos;
-   else if(id==='pit')current().ownsPit=true;
-   else if(id==='trap')current().ownsTrap=true;
-   else state.world.push(id);
- }else state.world.push(id);
- if(id==='hp')state.players.forEach(p=>p.hp=5);
- if(id==='coin')state.players.forEach(p=>p.coin=5);
- if(id==='field')state.players.forEach(p=>p.pos=0);
- if(id==='goalplus')state.goal=10;
- const replacement=draw();if(replacement)state.visible.splice(i,0,replacement);
- log('P'+(state.current+1)+'：「'+d.name+'」を取得');afterAction(d.type==='condition'?state.current:null);
-}
-function act(name){if(state.finished||!legalAction(name))return;const p=current(),e=enemy();if(name==='trap'){p.coin=floor(p.coin-(p.upgrade==='buyplus'?2:1));p.trapActive=true;log('P'+(state.current+1)+'：罠を購入 → HP1を下限に継続ダメージ。相手が移動すると解除');afterAction();return;}if(name==='pit'){p.coin=floor(p.coin-(p.upgrade==='buyplus'?2:1));p.pitUsed=true;e.pos=0;log('P'+(state.current+1)+'：落とし穴を購入 → 相手をスタートへ');afterAction();return;}if(name==='attack'){e.hp=floor(e.hp-(p.upgrade==='atkplus'?2:1));if(has('coinattack')&&e.coin!==null)e.coin=floor(e.coin-1)}if(name==='heal')p.hp+=p.upgrade==='healplus'?2:1;if(name==='buy')p.coin=floor(p.coin-(p.upgrade==='buyplus'?2:1));if(name==='mine')p.coin+=p.upgrade==='mineplus'?2:1;log('P'+(state.current+1)+'：'+({attack:'攻撃',heal:'回復',buy:'購入',mine:'採掘'}[name]));afterAction()}
-function move(delta){if(state.finished||!has('move')||current().pos===null||![1,-1,2,-2].includes(delta)||Math.abs(delta)>(current().upgrade==='moveplus'?2:1))return;const p=current(),e=enemy();const nextPos=p.pos+delta;if(nextPos<0||nextPos>state.goal)return;p.pos=nextPos;if(e.trapActive){e.trapActive=false;log('P'+(state.current+1)+'：移動して相手の罠を完全回避');}log('P'+(state.current+1)+'：位置'+p.pos+'へ移動');hide();afterAction()}
-function refresh(){if(state.finished||!current().refresh||!state.visible.length)return;current().refresh--;state.deck.push(...state.visible);for(let i=state.deck.length-1;i>0;i--){let j=rand(i+1);[state.deck[i],state.deck[j]]=[state.deck[j],state.deck[i]]}state.visible=state.deck.splice(0,7);log('P'+(state.current+1)+'：公開カードをリフレッシュ');afterAction()}
-function afterAction(preferred=null){if(checkVictory(preferred))return;state.current=1-state.current;if(state.current===0)state.turn++;const victim=current(),owner=enemy();if(owner.trapActive&&victim.hp!==null){const before=victim.hp;victim.hp=Math.max(1,victim.hp-1);log('☠️ 罠発動：P'+(state.current+1)+'のHP '+before+'→'+victim.hp);render();if(checkVictory())return;}render();if(state.mode==='cpu'&&state.current===1){cpuBusy=true;render();const serial=gameSerial;setTimeout(()=>{if(serial!==gameSerial)return; if(!$('modal').classList.contains('hidden')){const wait=()=>{if(serial!==gameSerial)return;if($('modal').classList.contains('hidden'))cpuTurn();else setTimeout(wait,150)};setTimeout(wait,150)}else cpuTurn()},650)}else if(state.mode==='cpu'){cpuBusy=false;render()}}
-function show(title,desc,buttons){$('dialog').innerHTML='<h2></h2><p></p><div id="choices"></div>';$('dialog').querySelector('h2').textContent=title;$('dialog').querySelector('p').textContent=desc;for(const [label,fn]of buttons){let b=document.createElement('button');b.className='primary';b.textContent=label;b.onclick=fn;$('choices').append(b)}$('modal').classList.remove('hidden');if(state&&!state.finished)render();const first=$('choices').querySelector('button');if(first)first.focus()}
-function hide(){$('modal').classList.add('hidden');if(state&&!state.finished)render()}function handoff(t,d){show(t,d,[['準備OK',hide]])}
-function chooseShop(i){const options=[];for(let n=0;n<=state.goal;n++)options.push(['📍 '+n+'マス',()=>{hide();const id=state.visible[i];if(id!=='shop'||state.finished||!cardAvailable(id))return;state.visible.splice(i,1);state.taken.push('shop');current().shop=n;const next=draw();if(next)state.visible.splice(i,0,next);log('P'+(state.current+1)+'：ショップを'+n+'マスに設置');afterAction()}]);options.push(['戻る',hide]);show('🏪 ショップ設置','設置するマスを選んでください。',options)}
-function confirmCard(i){if(cpuBusy||state.finished||!$('modal').classList.contains('hidden'))return;take(i)}
-function moveOptions(p){if(p.pos===null||!has('move'))return [];const max=p.upgrade==='moveplus'?2:1;return [1,2,-1,-2].filter(d=>Math.abs(d)<=max&&p.pos+d>=0&&p.pos+d<=state.goal)}
-function chooseMove(){if(cpuBusy||state.finished||!$('modal').classList.contains('hidden'))return;const opts=moveOptions(current());show('移動する','移動先を選択してください。',[...opts.map(d=>[`${d<0?'←':'→'} ${Math.abs(d)}マス`,()=>move(d)]),['戻る',hide]])}
-function render(){const s=state;for(let i=0;i<2;i++){const p=s.players[i],node=$('p'+i);node.className='player'+(s.current===i&&!s.finished?' active':'');node.innerHTML='<h2>'+(i===0?'🔵 ':'🔴 ')+(s.mode==='cpu'?(i===0?'あなた':'CPU'):'プレイヤー'+(i+1))+(s.current===i?' ●':'')+'</h2><div class="stat-row"><span class="stat">❤️ HP <b>'+(p.hp??'―')+'</b></span><span class="stat">🪙 金貨 <b>'+(p.coin??'―')+'</b></span><span class="stat">📍 位置 <b>'+(p.pos??'―')+'</b></span></div><div class="player-badges"><span class="status-badge upgrade-status">'+(p.upgrade?'✨ '+byId[p.upgrade].name:'✨ 強化なし')+'</span><span class="status-badge">🔄 '+p.refresh+'</span>'+(p.ownsTrap?'<span class="status-badge '+(p.trapActive?'trap-on':'trap-ready')+'">'+(p.trapActive?'☠️ 罠発動中':'☠️ 罠購入可')+'</span>':'')+(s.players[1-i].trapActive?'<span class="status-badge trap-danger">⚠️ 罠被害中・移動で解除</span>':'')+(p.ownsPit?'<span class="status-badge">'+(p.pitUsed?'🕳️ 使用済':'🕳️ 購入可')+'</span>':'')+(p.shop!==null?'<span class="status-badge">🏪 '+p.shop+'</span>':'')+'</div>'}$('turn').textContent='第'+s.turn+'ターン'+(s.finished?'・終了':s.mode==='cpu'?(s.current===0?'・あなたの番':'・CPU思考中'):'・P'+(s.current+1)+'の番');$('rules').textContent='🌍 世界ルール：'+(s.world.length?s.world.map(id=>byId[id].name).join(' ／ '):'まだ存在しない')+'　｜　🏁 終点：'+(has('field')?s.goal:'なし');$('cards').innerHTML='';s.visible.forEach((id,i)=>{const d=byId[id],b=document.createElement('button');b.className='card '+(d.type==='condition'?'victory-card':d.type==='upgrade'?'upgrade-card':d.type==='special'?'special-card':'world-card');b.title=d.desc;b.disabled=s.finished||cpuBusy||!cardAvailable(id)||!$('modal').classList.contains('hidden');b.setAttribute('aria-label',`${i+1}番 ${d.name}。${d.desc}`);b.innerHTML='<span class="emoji">'+d.icon+'</span><strong></strong>';b.querySelector('strong').textContent=(i+1)+'. '+d.name;b.append(Object.assign(document.createElement('span'),{className:'card-desc',textContent:d.desc}));b.onclick=()=>confirmCard(i);$('cards').append(b)});for(let i=s.visible.length;i<7;i++){const empty=document.createElement('div');empty.className='card empty-slot';empty.innerHTML='<span class="emoji">◇</span><strong>補充なし</strong>';$('cards').append(empty)}$('actions').innerHTML='';const options=[['⚔️ 攻撃',legalAction('attack'),()=>act('attack')],['💚 回復',legalAction('heal'),()=>act('heal')],['🛒 購入',legalAction('buy'),()=>act('buy')],['🕳️ 落とし穴',legalAction('pit'),()=>act('pit')],['☠️ 罠購入',legalAction('trap'),()=>act('trap')],['⛏️ 採掘',legalAction('mine'),()=>act('mine')],['🏃 移動',has('move')&&current().pos!==null&&moveOptions(current()).length>0,chooseMove],['🔄 リフレッシュ',current().refresh>0&&s.visible.length>0,refresh]];for(const [label,enabled,fn]of options){const b=document.createElement('button');b.className='action';b.textContent=label;b.disabled=s.finished||cpuBusy||!enabled||!$('modal').classList.contains('hidden');b.onclick=()=>{if(cpuBusy||state.finished||!$('modal').classList.contains('hidden'))return;fn()};$('actions').append(b)}$('message').textContent=s.history[0]||'公開カードを選択してください。';$('battleFeed').textContent=s.history[0]||'カードを取得して、世界のルールを作ろう';$('battleFeed').classList.remove('pop');void $('battleFeed').offsetWidth;$('battleFeed').classList.add('pop')}
-$('restart').onclick=()=>show('ゲームメニュー','対戦方式を選択できます。',[['同じモードで再戦',()=>{hide();fresh()}],['タイトルへ',chooseMode],['戻る',hide]]);
-function confirmAction(label,fn){if(cpuBusy||state.finished)return;const p=current(),e=enemy();const details={'⚔️ 攻撃':`相手HP ${e.hp} → ${Math.max(0,e.hp-(p.upgrade==='atkplus'?2:1))}${has('coinattack')&&e.coin!==null?' ／ 相手金貨 '+e.coin+' → '+Math.max(0,e.coin-1):''}`,'💚 回復':`自分HP ${p.hp} → ${p.hp+(p.upgrade==='healplus'?2:1)}`,'🛒 購入':`自分金貨 ${p.coin} → ${Math.max(0,p.coin-(p.upgrade==='buyplus'?2:1))}`,'⛏️ 採掘':`自分金貨 ${p.coin} → ${p.coin+(p.upgrade==='mineplus'?2:1)}`,'🔄 リフレッシュ':'公開カード7枚を入れ替えます（1試合1回）'};if(label==='🏃 移動')return fn();show(label+'を実行',details[label]||'この行動を実行します。',[['実行する',()=>{hide();fn()}],['やめる',hide]])}
-function chooseMode(){gameSerial++;cpuBusy=false;hide();$('titleScreen').classList.remove('hidden')}
-function startMode(mode){gameMode=mode;$('titleScreen').classList.add('hidden');hide();fresh()}
-$('startCpu').onclick=()=>startMode('cpu');
-$('startLocal').onclick=()=>startMode('local');
-$('openHelp').onclick=()=>$('helpScreen').classList.remove('hidden');
-$('closeHelp').onclick=()=>$('helpScreen').classList.add('hidden');
-function cpuTurn(){
- if(state.finished||state.mode!=='cpu'||state.current!==1)return;
- const p=current(),e=enemy(),choices=[];
- const add=(score,fn,action='')=>{const repeated=action&&state.history.slice(0,6).filter(x=>x==='P'+(state.current+1)+'：'+action).length>=2;choices.push({score:score+(repeated&&score<14?-12:0)+Math.random()*0.15,fn});};
- const immediateWin=(id)=>{
-  if(id==='wincoin'&&p.coin!==null&&p.coin>=10)return true;
-  if(id==='winzero'&&p.coin===0)return true;
-  if(id==='winhp'&&p.hp!==null&&p.hp>=10)return true;
-  if(id==='wingoal'&&p.pos!==null&&p.pos===state.goal)return true;
-  if(id==='losehp'&&e.hp===0&&p.hp!==0)return true;
-  return false;
- };
- state.visible.forEach((id,i)=>{
-  if(!cardAvailable(id))return;
-  let score=1.4;const d=byId[id];
-  // 勝利条件カードを取得した本人が同時達成時に優先される。
-  if(immediateWin(id))score=1000;
-  else if(has('losehp')&&p.hp===0)score=-1000;
-  else if(id==='losehp'&&p.hp===0)score=-1000;
-  else if(id==='winzero'&&e.coin===0&&p.coin!==0)score=-1000;
-  else if(id==='winhp'&&e.hp!==null&&e.hp>=10)score=-1000;
-  else if(id==='wincoin'&&e.coin!==null&&e.coin>=10)score=-1000;
-  else if(id==='wingoal'&&e.pos!==null&&e.pos===state.goal)score=-1000;
-  else if(id==='hp')score=has('attack')?3:5;
-  else if(id==='coin')score=has('wincoin')&&has('mine')?19:has('winzero')&&has('buy')?16:has('mine')?4:3;
-  else if(id==='field')score=has('wingoal')?19:state.visible.includes('wingoal')&& (has('move')||state.visible.includes('move'))?13:2.5;
-  else if(id==='attack')score=has('hp')?6:4;
-  else if(id==='heal')score=has('winhp')&&has('hp')?17:has('hp')?4:2.5;
-  else if(id==='mine')score=has('wincoin')&&has('coin')?17:has('coin')?6:4;
-  else if(id==='buy')score=has('winzero')&&has('coin')?17:has('coin')?3:2;
-  else if(id==='move')score=has('wingoal')&&has('field')?18:has('field')&&state.visible.includes('wingoal')?12:has('field')?2.7:2;
-  else if(id==='atkplus')score=has('attack')?7:4;
-  else if(id==='healplus')score=has('heal')?4:2;
-  else if(id==='mineplus')score=has('mine')?7:4;
-  else if(id==='buyplus')score=has('buy')?3:2;
-  else if(id==='moveplus')score=has('move')?3:2;
-  else if(id==='wincoin')score=has('coin')&&has('mine')?11+(p.coin||0)*.65:3;
-  else if(id==='winhp')score=has('hp')&&has('heal')?9+(p.hp||0)*.35:has('hp')?3:2;
-  else if(id==='winzero')score=has('coin')&&has('buy')?3+(5-(p.coin||0))*.5:2;
-  else if(id==='losehp')score=has('attack')&&has('hp')?6+(5-(e.hp||5))*.5:2;
-  else if(id==='wingoal')score=has('field')&&has('move')?11+(p.pos||0)*.4:has('field')&&state.visible.includes('move')?10:2;
-  else if(id==='samerange')score=has('attack')&&p.pos!==e.pos?-2:1;
-  else if(id==='coinattack')score=has('attack')?3:1;
-  else if(id==='goalplus')score=(has('wingoal')||state.visible.includes('wingoal'))&&has('field')&&e.pos!==null&&e.pos>=state.goal-2&&p.pos!==null&&e.pos>p.pos?24:1;
-  else if(id==='shop')score=has('field')?2.2:-100;
-  else if(id==='pit')score=has('field')&&has('buy')?2.4:1;
-  else if(id==='trap')score=has('buy')&&has('hp')?6:2;
-  if(id==='losehp'&&p.hp===null)score=1;
-  if(id==='losehp'&&p.hp===0)score=-1000;
-  if(id==='winzero'&&p.coin===null)score=1;
-  add(score,()=>{if(id==='shop'){const n=Math.min(state.goal,p.pos??0);state.visible.splice(i,1);state.taken.push('shop');p.shop=n;const next=draw();if(next)state.visible.splice(i,0,next);log('P2：ショップを'+n+'マスに設置');afterAction()}else take(i)});
- });
- if(legalAction('attack')){
-  const damage=p.upgrade==='atkplus'?2:1;
-  const kill=has('losehp')&&e.hp<=damage;
-  const enemyHeal=e.upgrade==='healplus'?2:1;
-  const enemyMine=e.upgrade==='mineplus'?2:1;
-  const blocksHpWin=has('winhp')&&has('heal')&&e.hp!==null&&e.hp<10&&e.hp+enemyHeal>=10&&e.hp-damage+enemyHeal<10;
-  const blocksCoinWin=has('coinattack')&&has('wincoin')&&has('mine')&&e.coin!==null&&e.coin<10&&e.coin+enemyMine>=10&&e.coin-1+enemyMine<10;
-  // 未取得の勝利条件カードも警戒。相手が次の手で即勝利できるなら先に削る。
-  const blocksVisibleHpWin=state.visible.includes('winhp')&&e.hp!==null&&e.hp>=10&&e.hp-damage<10;
-  const blocksVisibleCoinWin=has('coinattack')&&state.visible.includes('wincoin')&&e.coin!==null&&e.coin>=10&&e.coin-1<10;
-  // 相手が次の手でHP10・金貨10に到達するなら、攻撃で妨害する価値を上げる。
-  add(has('coinattack')&&has('winzero')&&e.coin===1&&!kill?-500:kill?1000:blocksHpWin||blocksCoinWin||blocksVisibleHpWin||blocksVisibleCoinWin?30:e.hp===0?-2:4.5+(has('losehp')?2:0)+(has('coinattack')?1:0),()=>act('attack'),'攻撃');
- }
- if(legalAction('heal')){
-  const amount=p.upgrade==='healplus'?2:1;
-  const enemyCanAttack=has('attack')&&e.hp!==null&&(!has('samerange')||(p.pos!==null&&p.pos===e.pos));
-  const incoming=(enemyCanAttack?(e.upgrade==='atkplus'?2:1):0)+(e.trapActive&&p.hp>1?1:0);
-  const danger=has('losehp')&&incoming>0&&p.hp<=incoming;
-  // 罠で毎ターン減るHPを回復しても、勝利を狙う行動を完全には放棄しない。
-  add(has('winhp')&&p.hp+amount>=10?1000:danger?18:!has('losehp')&&state.visible.includes('losehp')&&p.hp===0?40:has('winhp')?5+(p.hp>=8?6:0):e.trapActive&&p.hp<=3?3:0.2,()=>act('heal'),'回復');
- }
- if(legalAction('mine')){
-  const gain=p.upgrade==='mineplus'?2:1;
-  add(has('wincoin')&&p.coin+gain>=10?1000:has('wincoin')?6.5+(p.coin/5):0.2,()=>act('mine'),'採掘');
- }
- if(legalAction('trap'))add(has('winzero')&&p.coin<=(p.upgrade==='buyplus'?2:1)?1000:has('losehp')&&e.hp<=2?6:has('losehp')?6:4.5,()=>act('trap'));
- if(legalAction('pit')){const cost=p.upgrade==='buyplus'?2:1;const winsBySpending=has('winzero')&&p.coin<=cost; if(e.pos>0||winsBySpending)add(winsBySpending?1000:has('wingoal')&&e.pos>=state.goal-1?14:has('wingoal')&&e.pos>2?8:3.5,()=>act('pit'));}
- if(legalAction('buy')){
-  const cost=p.upgrade==='buyplus'?2:1;
-  add(has('winzero')&&p.coin<=cost?1000:has('winzero')?5.5+(3/p.coin):1,()=>act('buy'));
- }
- if(has('move')&&p.pos!==null){
-  const dirs=moveOptions(p);
-  if(e.trapActive&&dirs.length){const escape=dirs.find(d=>d>0)||dirs[0];add(p.hp<=2?20:7.5,()=>move(escape),'罠から脱出');}
-  // ゴール条件がないときの目的のない往復移動を防ぐ。
-  if(has('wingoal'))for(const d of dirs.filter(d=>d>0))add(p.pos+d===state.goal?1000:5+d*0.1,()=>move(d));
-  if(has('samerange')&&has('attack')&&e.pos!==null&&p.pos!==e.pos){const candidates=dirs.map(d=>({d,next:p.pos+d})).filter(x=>Math.abs(x.next-e.pos)<Math.abs(p.pos-e.pos));if(candidates.length){candidates.sort((a,b)=>Math.abs(a.next-e.pos)-Math.abs(b.next-e.pos));add(candidates[0].next===e.pos?8:6.2,()=>move(candidates[0].d));}}
- }
- if(has('move')&&p.pos!==null&&state.players.some(x=>x.shop!==null)&&!atShop(p)&&has('buy')&&p.coin!==null&&p.coin>=(p.upgrade==='buyplus'?2:1)&&((p.ownsPit&&!p.pitUsed&&e.pos!==null&&(e.pos>0||has('winzero')))||(p.ownsTrap&&!p.trapActive&&e.hp!==null)||has('winzero'))){const shops=state.players.filter(x=>x.shop!==null).map(x=>x.shop);const target=moveOptions(p).map(d=>({d,pos:p.pos+d})).sort((a,b)=>Math.min(...shops.map(x=>Math.abs(x-a.pos)))-Math.min(...shops.map(x=>Math.abs(x-b.pos))))[0];if(target&&Math.min(...shops.map(x=>Math.abs(x-target.pos)))<Math.min(...shops.map(x=>Math.abs(x-p.pos))))add(p.ownsPit&&!p.pitUsed&&has('wingoal')&&e.pos!==null&&e.pos>=state.goal-2?10:4.2,()=>move(target.d));}
- if(!choices.length&&p.refresh&&state.visible.length)add(1,refresh);
- else if(p.refresh&&state.visible.length&&choices.every(x=>x.score<3))add(2.8,refresh);
- choices.sort((a,b)=>b.score-a.score);
- if(choices.length)choices[0].fn();else {cpuBusy=false;render();show('進行できる行動がありません','CPUが選べるカード・行動・リフレッシュがありません。',[['タイトルへ',chooseMode]])}
-}
-renderTitleOnly();
-function renderTitleOnly(){$('titleScreen').classList.remove('hidden')}
+</style></head><body><main id="app" class="wrap"></main><script>
+(()=>{'use strict';const app=document.getElementById('app');const suits=['♠','♥','♦','♣'];const red=s=>s==='♥'||s==='♦';const ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];const label=c=>c.s+c.r;const deckNew=()=>suits.flatMap(s=>ranks.map(r=>({s,r,id:s+r})));const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};let g=null;let ui={pick:null};const A={explore:'🔍 探索',steal:'🕵️ 盗む',attack:'⚔️ 攻撃',defend:'🛡️ 防御'};const allowed=(p)=>Object.keys(A).filter(a=>a==='explore'||p.last==='explore'||p.last===null);function card(c,select=false,chosen=false){return `<button type="button" class="card ${red(c.s)?'reds':''} ${select?'pick':''} ${chosen?'selected':''}" ${select?`data-card="${c.id}" aria-pressed="${chosen}"`: 'disabled'} aria-label="${label(c)}${select?chosen?' 選択中':' 選択可能':''}"><span>${c.s}</span><small>${c.r}</small></button>`}function cards(cs,select=false){return `<div class="cards">${cs.map(c=>card(c,select,ui.pick===c.id)).join('')}</div>`}function btn(text,act,cls='',disabled=false){return `<button class="btn ${cls}" data-act="${act}" ${disabled?'disabled':''}>${text}</button>`}function layout(body,round=true){document.body.classList.toggle("playing",!!(g&&round));app.innerHTML=`<div class="top"><span class="brand">💎 GEMSTO</span>${g&&round?`<span class="pill">R${g.round}/3 · T${g.turn} · 山札${g.deck.length}枚${g.turn>=100?" · 長期戦":""}</span>`:''}</div>${body}<div class="footer">GEMSTO · Ver.0.52 · オフライン対戦</div>`;app.querySelectorAll('[data-act]').forEach(e=>e.addEventListener('click',()=>dispatch(e.dataset.act)));app.querySelectorAll('[data-card]').forEach(e=>e.addEventListener('click',()=>{if(!g||!['discard','stealpick','stealgive'].includes(g.phase))return;let t=g.ctx.task;if(!t)return;let owner=g.phase==='stealpick'?t.other:t.who;if(g.phase==='discard'&&g.players[owner].hand.length!==5)return;if(!g.players[owner].hand.some(c=>c.id===e.dataset.card))return;ui.pick=e.dataset.card;render()}))}function title(){g=null;layout(`<section class="hero"><div class="gem">💎</div><h1>GEMSTO</h1><div class="muted">ジェムスト</div><p class="muted tiny">探索 × 読み合い × 役づくり</p></section><div class="menu">${btn('🤖 CPU戦','newcpu')}${btn('👥 対人戦（スマホ1台）','newpvp','green')}${btn('📖 遊び方','help','gray')}</div>`,false)}function help(){layout(`<section class="panel help"><h2>📖 遊び方</h2><p>ジョーカーなしのトランプ52枚で戦う、全3ラウンドの対戦カードゲーム。各ラウンドの開始時に両者へ4枚ずつ配る。手札は常に公開。</p><h3>🎮 同時に選ぶ4つの行動</h3><ul><li><b>🔍 探索：</b>山札から1枚引き、手札5枚から1枚を山札に戻す。</li><li><b>🕵️ 盗む：</b>相手から1枚奪い、自分の手札から1枚渡す。探索中の相手から盗む場合は、相手が5枚から1枚引いた後に盗み、交換後に相手が1枚を山札へ戻す。</li><li><b>⚔️ 攻撃：</b>相手が探索ならその探索を無効にし、自分が代わりに探索。そうでなければ失敗。</li><li><b>🛡️ 防御：</b>相手が盗むなら無効にして逆に盗む。そうでなければ失敗。</li></ul><p>探索は連続可能。盗む・攻撃・防御のいずれかを選んだ次のターンは、<b>探索のみ選択可能</b>。</p><h3>💎 4枚役と得点</h3><ul><li>同じスート4枚（連番以外）：<b>4点</b></li><li>4連番・4枚とも違うスート：<b>8点</b></li><li>同じスートの4連番：<b>12点</b></li><li>同じ数字4枚：<b>20点</b></li></ul><p>連番はAを一番上として扱う（J-Q-K-Aは有効、A-2-3-4は無効）。</p><h3>🏳️ フォールド／コンティニュー</h3><p>役ができたら<b>フォールド</b>でそのラウンドを終了して得点を確定。相手に未確定の保留点があれば失う。<b>コンティニュー</b>なら得点を保留し、役の4枚を捨てて4枚引き直して続行。</p><p><b>両者同時に役成立</b>なら両者が選択。どちらかがフォールドした場合は<b>両者とも今回の役の点数を獲得</b>。両者コンティニューなら続行。</p><p>山札が尽きた場合は両者の保留点を確定してラウンド終了。3ラウンド終了時の合計点で勝負。</p><h3>📱 対人戦</h3><p>プレイヤー1が行動を選んだらスマホを渡し、プレイヤー2が行動を選ぶ。選択内容は公開時まで非表示。公開後のカード操作は一緒に確認する。</p></section>${btn('← タイトルへ','title','gray')}`,false)}function log(s){g.logs.unshift(s);if(g.logs.length>80)g.logs.length=80}function make(mode){g={mode,round:0,turn:0,deck:[],players:[{name:'あなた',hand:[],score:0,pending:0,last:null,choice:null},{name:mode==='cpu'?'CPU':'プレイヤー2',hand:[],score:0,pending:0,last:null,choice:null}],phase:'',logs:[],spent:[],queue:[],ctx:{},melds:[null,null],decisions:[null,null]};if(mode==='pvp')g.players[0].name='プレイヤー1';startRound()}function cardIntegrity(){if(!g)return true;const all=[...g.deck,...g.spent,...g.players.flatMap(p=>p.hand)];return all.length===52&&all.every(c=>c&&typeof c==='object'&&suits.includes(c.s)&&ranks.includes(c.r)&&c.id===c.s+c.r)&&new Set(all.map(c=>c.id)).size===52}function integrityGuard(){if(cardIntegrity())return true;log('処理エラー：カードの枚数または重複に異常があります');g.phase='error';render();return false}function draw(){return g.deck.pop()||null}function back(c){g.deck.push(c);shuffle(g.deck)}function startRound(){ui.pick=null;g.round++;g.turn=1;g.deck=shuffle(deckNew());g.spent=[];g.players.forEach(p=>{p.hand=[];p.pending=0;p.last=null;p.choice=null;for(let i=0;i<4;i++)p.hand.push(draw())});g.melds=[null,null];g.decisions=[null,null];g.queue=[];g.phase='choose';log(`第${g.round}ラウンド開始！`);if(!integrityGuard())return;render()}function cpuAction(){let me=g.players[1],op=g.players[0],valid=allowed(me);// A special action forces the opponent to explore next turn. Counter it with a guaranteed attack when legal.
+if(op.last!==null&&op.last!=='explore'&&valid.includes('attack')&&Math.random()<.7)return 'attack';let ownMax=bestPotential(me.hand),theirMax=bestPotential(op.hand);let w={explore:3.5,steal:1.6,attack:1.3,defend:1.1};if(theirMax>=3)w.steal+=3.4;if(theirMax>=3&&op.last==='steal')w.defend+=2.2;if(ownMax>=3)w.explore+=1.4;if(op.last==='explore')w.attack+=1.1;if(op.last==='steal')w.defend+=1.1;if(op.last==='attack')w.explore+=.4;let total=valid.reduce((a,k)=>a+w[k],0),n=Math.random()*total;for(let k of valid){n-=w[k];if(n<=0)return k}return valid[0]}function bestPotential(hand){let max=0;for(let r of ranks)max=Math.max(max,hand.filter(c=>c.r===r).length);for(let s of suits)max=Math.max(max,hand.filter(c=>c.s===s).length);for(let start=2;start<=11;start++){let seq=[start,start+1,start+2,start+3].map(n=>n===14?'A':ranks[n-1]);let matching=hand.filter(c=>seq.includes(c.r));let unique=new Set(matching.map(c=>c.r)).size;max=Math.max(max,unique)}return max}function choose(i,a){if(g.phase!=='choose'||(g.mode==='cpu'?i!==0:i!==(g.players[0].choice?1:0)))return;let p=g.players[i];if(!allowed(p).includes(a))return;p.choice=a;if(i===0&&g.mode==='pvp'){g.phase='pass';render()}else if(i===0){g.players[1].choice=cpuAction();reveal()}else reveal()}function reveal(){if(g.players.some(p=>!Object.prototype.hasOwnProperty.call(A,p.choice)||!allowed({last:p.last}).includes(p.choice))){log('処理エラー：選択できない行動が含まれています');g.phase='error';render();return}g.players.forEach(p=>{p.last=p.choice});g.phase='reveal';g.queue=[];let a=g.players.map(p=>p.choice);log(`${g.players[0].name}：${A[a[0]]} ／ ${g.players[1].name}：${A[a[1]]}`);if(a[0]==='attack'&&a[1]==='explore'){g.queue.push({kind:'explore',who:0});log('プレイヤー1側の攻撃成功！')}else if(a[1]==='attack'&&a[0]==='explore'){g.queue.push({kind:'explore',who:1});log('プレイヤー2側の攻撃成功！')}else{for(let i=0;i<2;i++)if(a[i]==='explore')g.queue.push({kind:'explore',who:i});if(a[0]==='steal'&&a[1]==='defend'){g.queue.push({kind:'steal',who:1,other:0});log('防御成功！カウンター盗み')}else if(a[1]==='steal'&&a[0]==='defend'){g.queue.push({kind:'steal',who:0,other:1});log('防御成功！カウンター盗み')}else{for(let i=0;i<2;i++)if(a[i]==='steal')g.queue.push({kind:'steal',who:i,other:1-i})}}g.ctx={};if(a.includes('steal')&&a.includes('explore')){let explorer=a.indexOf('explore'),stealer=a.indexOf('steal');if(g.queue.length===2&&g.queue[0].kind==='explore'&&g.queue[1].kind==='steal'){g.queue[0].deferDiscard=true;g.queue[1].explorer=explorer}}render()}function processNext(){ui.pick=null;if(!g.queue.length){finishTurn();return}let task=g.queue.shift();g.ctx={task};if(task.kind==='explore'){let c=draw();if(!c){log('山札が空のため探索できません。両者の保留点を確定します');finishRound('山札切れ');return}g.players[task.who].hand.push(c);log(`${g.players[task.who].name}が${label(c)}をドロー`);if(task.deferDiscard){g.queue.push({kind:'discard',who:task.who});processNext();return}g.phase='discard';if(g.mode==='cpu'&&task.who===1){cpuDiscard(1);return}}else if(task.kind==='discard'){g.phase='discard';if(g.mode==='cpu'&&task.who===1){cpuDiscard(1);return}}else{g.phase='stealpick';if(g.mode==='cpu'&&task.who===1){cpuSteal();return}}ui.pick=null;render()}function evalHand(hand){if(hand.length===5){let best=-Infinity;for(let i=0;i<5;i++){let four=hand.filter((_,j)=>j!==i);best=Math.max(best,evalHand(four))}return best}if(meld(hand))return 100+meld(hand).points;let score=0;for(let r of ranks){let n=hand.filter(c=>c.r===r).length;score+=n*n*3}for(let s of suits){let n=hand.filter(c=>c.s===s).length;score+=n*n*1.7}for(let start=2;start<=11;start++){let window=[start,start+1,start+2,start+3].map(n=>n===14?1:n);let matches=hand.filter(c=>window.includes(ranks.indexOf(c.r)+1));let unique=new Set(matches.map(c=>c.r)).size;score+=unique*unique*(new Set(matches.map(c=>c.s)).size===matches.length?1.5:0.7);for(let suit of suits){let suited=matches.filter(c=>c.s===suit);let suitedUnique=new Set(suited.map(c=>c.r)).size;if(suitedUnique>=2)score+=suitedUnique*suitedUnique*1.1}}return score}function cpuDiscard(i){let p=g.players[i];let best=-Infinity,candidates=[];for(let c of p.hand){let remain=p.hand.filter(x=>x!==c);let score=evalHand(remain);if(score>best+1e-8){best=score;candidates=[c]}else if(Math.abs(score-best)<=1e-8){candidates.push(c)}}doDiscard(i,candidates[Math.floor(Math.random()*candidates.length)].id)}function doDiscard(i,id){if(!g.ctx.task||g.ctx.task.who!==i||g.ctx.task.kind!=='discard'&&g.ctx.task.kind!=='explore'||g.phase!=='discard'||g.players[i].hand.length!==5)return;let p=g.players[i],at=p.hand.findIndex(c=>c.id===id);if(at<0)return;let [c]=p.hand.splice(at,1);back(c);log(`${p.name}が${label(c)}を山札に返却`);if(!integrityGuard())return;processNext()}function cpuSteal(){let t=g.ctx.task,op=g.players[t.other],me=g.players[t.who];let best=null,score=-Infinity;for(let stolen of op.hand){for(let given of me.hand){let mine=me.hand.filter(x=>x!==given).concat(stolen);let theirs=op.hand.filter(x=>x!==stolen).concat(given);let val=evalHand(mine)-evalHand(theirs)+Math.random()*.01;if(val>score){score=val;best={stolen:stolen.id,given:given.id}}}}if(!best){log('処理エラー：交換カードを選べません');g.phase='error';render();return}g.ctx.stolen=best.stolen;doSteal(t.who,best.stolen,best.given)}function doSteal(i,stealId,giveId){let t=g.ctx.task;if(!t||t.kind!=='steal'||t.who!==i||!['stealgive','stealpick'].includes(g.phase))return;if(g.phase==='stealgive'&&g.ctx.stolen!==stealId)return;let me=g.players[i],other=g.players[t.other],si=other.hand.findIndex(c=>c.id===stealId),gi=me.hand.findIndex(c=>c.id===giveId);if(si<0||gi<0||me.hand.length!==4||other.hand.length!==(t.explorer===t.other?5:4))return;let stolen=other.hand.splice(si,1)[0],given=me.hand.splice(gi,1)[0];me.hand.push(stolen);other.hand.push(given);log(`${me.name}が${label(stolen)}を盗み、${label(given)}を渡した`);g.ctx={};if(!integrityGuard())return;processNext()}function meld(hand){if(hand.length!==4)return null;let rs=hand.map(c=>ranks.indexOf(c.r)+1).sort((a,b)=>a-b),sameSuit=hand.every(c=>c.s===hand[0].s),sameRank=hand.every(c=>c.r===hand[0].r),distinctSuit=new Set(hand.map(c=>c.s)).size===4;let straight=(rs[0]!==1&&rs.every((n,i)=>n===rs[0]+i))||JSON.stringify(rs)==='[1,11,12,13]';if(sameRank)return {points:20,name:'フォーカード'};if(straight&&sameSuit)return {points:12,name:'同スートストレート'};if(straight&&distinctSuit)return {points:8,name:'4スートストレート'};if(sameSuit)return {points:4,name:'同スート4枚'};return null}function finishTurn(){ui.pick=null;if(!cardIntegrity()){log('処理エラー：52枚のカード整合性が崩れました');g.phase='error';render();return}if(g.players.some(p=>p.hand.length!==4)){log('処理エラー：手札枚数が4枚ではありません');g.phase='error';render();return}g.melds=g.players.map(p=>meld(p.hand));if(g.melds.some(Boolean)){g.phase='meld';g.decisions=[null,null];log('役成立！フォールド／コンティニューを選択');if(g.mode==='cpu'&&g.melds[1]){g.decisions[1]=cpuFold();if(!g.melds[0]){resolveDecisions();return}}render()}else{g.turn++;g.players.forEach(p=>p.choice=null);g.phase='choose';render()}}function cpuFold(){let own=g.players[1],other=g.players[0];let gain=g.melds[1]?.points||0;/* A single meld's fold forfeits the opponent's pending points; simultaneous melds bank both. */let opponentOnFold=other.score+(g.melds[0]?other.pending+g.melds[0].points:0);let lead=own.score+own.pending+gain-opponentOnFold;if(g.round===3)return lead>=0?'fold':'continue';if(gain===20)return 'fold';// Early-round risk management: banking a meld also wipes an unmatched opponent's pending score.
+if(!g.melds[0]&&other.pending>=8)return 'fold';
+// With a large unbanked pot, protect points rather than gamble on another meld.
+if(own.pending>=12)return 'fold';
+// When trailing substantially, favor continuing on low-value melds.
+let deficit=other.score-(own.score+own.pending+gain);
+if(deficit>=12&&gain<=8)return 'continue';
+return Math.random()<.55?'fold':'continue'}function decide(i,d){if(g.phase!=='meld'||!g.melds[i]||g.decisions[i]!==null||!['fold','continue'].includes(d))return;g.decisions[i]=d;if(g.mode==='pvp'&&i===0&&g.melds[1]&&g.decisions[1]===null){ui.pick=null;g.phase='decisionPass';render();return}resolveDecisions()}function resolveDecisions(){if(!integrityGuard())return;let active=g.melds.map((m,i)=>m?i:-1).filter(i=>i>=0);if(active.some(i=>!['fold','continue'].includes(g.decisions[i]))){g.phase='meld';render();return}let folding=active.some(i=>g.decisions[i]==='fold');if(folding){if(active.length===2){for(let i of active)g.players[i].score+=g.players[i].pending+g.melds[i].points;g.players.forEach(p=>p.pending=0);log('同時役成立：どちらかがフォールド、両者が得点獲得')}else{let winner=active[0];g.players[winner].score+=g.players[winner].pending+g.melds[winner].points;g.players.forEach(p=>p.pending=0);log(`${g.players[winner].name}がフォールド！`)}endRound()}else{for(let i of active){let p=g.players[i];p.pending+=g.melds[i].points;g.spent.push(...p.hand);p.hand=[];for(let j=0;j<4;j++){let c=draw();if(c)p.hand.push(c)}}g.melds=[null,null];g.decisions=[null,null];if(!integrityGuard())return;if(g.players.some(p=>p.hand.length<4)){finishRound('山札切れ');return}log('コンティニュー！役のカードを交換して続行');g.turn++;g.players.forEach(p=>p.choice=null);g.phase='choose';render()}}function finishRound(reason){if(!integrityGuard())return;g.players.forEach(p=>{p.score+=p.pending;p.pending=0});g.queue=[];g.ctx=null;log(`${reason}：両者の保留点を確定`);endRound()}function endRound(){ui.pick=null;g.queue=[];g.ctx=null;g.phase=g.round===3?'gameover':'roundover';render()}function render(){if(!g){title();return}let p=g.players,phase=g.phase;let scores=`<div class="score">${p.map((x,i)=>`<div><div class="muted tiny">${x.name}</div><strong>${x.score}<small class="point-unit"> pt</small></strong><div class="tiny muted">保留 ${x.pending}点</div></div>`).join('')}</div>`;let hands=`<section class="panel hands-panel"><h3>🃏 公開手札</h3>${p.map(x=>`<div class="handrow"><span class="handname">${x.name}<small class="last-action">${x.last===null?"初手":`前回 ${A[x.last]}${x.last!=="explore"?(phase==="choose"?" · 今回は探索のみ":phase==="pass"?" · 今回は探索のみ":phase==="reveal"||phase==="discard"||phase==="stealpick"||phase==="stealgive"?" · 次ターン探索のみ":""):""}`}</small></span>${cards(x.hand)}</div>`).join('')}</section>`;let tail=`<div class="utility"><details class="history"><summary>対戦ログ</summary><div class="log">${g.logs.slice(0,12).map(x=>`<div>${x}</div>`).join('')}</div></details>${btn('終了','confirmtitle','gray')}</div>`;let phaseNames={choose:'行動選択',pass:'端末受け渡し',reveal:'同時公開',discard:'探索・返却',stealpick:'盗み',stealgive:'カード交換',meld:'役成立',decisionPass:'決断待ち',roundover:'ラウンド終了',gameover:'試合終了',error:'エラー'};let body=`<div class="phasebar"><span>💎 ${phaseNames[phase]||phase}</span><span>使用済み <b>${g.spent.length}</b> 枚</span></div>${scores}<div class="eventline" role="status" aria-live="polite" aria-atomic="true">${g.logs[0]||'対戦開始'}</div>`;if(phase==='choose'){let who=g.mode==='cpu'?0:(p[0].choice?1:0);let whoP=p[who];body+=`${hands}<section class="panel"><h2>⚔️ ${whoP.name}の行動選択</h2><p class="muted tiny">${g.mode==='pvp'?'行動は公開時まで非表示。手札は公開情報です。':'CPUも同じ行動制限に従って選択します。'}</p><div class="actions">${Object.keys(A).map(k=>btn(A[k],`choose:${who}:${k}`,k==='explore'?'green':'',!allowed(whoP).includes(k))).join('')}</div></section>`}else if(phase==='pass'){body+=`<section class="panel center"><h2>📱 スマホを渡してください</h2><p>プレイヤー1の行動は確定しました。</p><p class="muted">プレイヤー2は、画面を受け取ったら下のボタンを押してください。</p>${btn('プレイヤー2の行動選択へ','pass','green')}</section>`}else if(phase==='reveal'){body+=`<section class="panel center"><h2>⚔️ 同時行動公開！</h2><div class="score">${p.map(x=>`<div><div>${x.name}</div><h2>${A[x.choice]}</h2></div>`).join('')}</div><p class="muted">公開後のカード操作は一緒に確認できます。</p>${btn('行動を処理する','next','green')}</section>${hands}`}else if(phase==='discard'){let t=g.ctx.task,who=t.who;body+=`<section class="panel"><h2>🔍 ${p[who].name}の探索</h2><div class="notice">山札へ返すカードを1枚選択してください。</div><p class="muted tiny">5枚から1枚返却（盗みを受けた場合は交換後に返却）</p>${cards(p[who].hand,true)}<p class="center">${ui.pick?'返却：'+ui.pick:'カードをタップして選択'}</p>${btn('このカードを山札に戻す','discard','green',!ui.pick)}</section>${p.map((x,i)=>i!==who?`<section class="panel"><h3>${x.name}</h3>${cards(x.hand)}</section>`:'').join('')}`}else if(phase==='stealpick'){let t=g.ctx.task;body+=`<section class="panel"><h2>${p[t.other].choice==='steal'&&p[t.who].choice==='defend'?'🛡️ カウンター盗み':'🕵️ '+p[t.who].name+'の盗み'}</h2><p class="muted">${p[t.other].name}から奪うカードを選択</p>${cards(p[t.other].hand,true)}<p class="center">${ui.pick?'奪う：'+ui.pick:'カードをタップして選択'}</p>${btn('奪うカードを決定','stealchoose','green',!ui.pick)}</section><section class="panel"><h3>${p[t.who].name}の手札</h3>${cards(p[t.who].hand)}</section>`}else if(phase==='stealgive'){let t=g.ctx.task;body+=`<section class="panel"><h2>🔄 ${p[t.who].name}が渡すカード</h2><p class="notice">${p[t.other].name}から${g.ctx.stolen}を奪います。代わりに渡すカードを選択。</p>${cards(p[t.who].hand,true)}<p class="center">${ui.pick?'渡す：'+ui.pick:'カードをタップして選択'}</p>${btn('交換を確定','stealgive','green',!ui.pick)}</section>`}else if(phase==='meld'||phase==='decisionPass'){body+=`${hands}<section class="panel"><h2>💎 役成立！</h2>${phase==='decisionPass'?'':g.melds.map((m,i)=>m?`<div class="notice" style="margin:8px 0">${p[i].name}：<b>${m.name} +${m.points}点</b></div>`:'').join('')}${phase==='decisionPass'?`<div class="center"><h3>📱 プレイヤー2にスマホを渡す</h3><p class="muted">プレイヤー1の決断は非公開です。画面を渡してから次へ進んでください。</p>${btn('プレイヤー2の選択へ','decisionpass','green')}</div>`:(()=>{let who=g.melds.findIndex((m,i)=>m&&!g.decisions[i]);if(who<0)return '<p>決定を処理中</p>';return `<h3>${p[who].name}の決断</h3><p class="muted tiny">両者同時成立時は、どちらかがフォールドすると両者に得点が入ります。</p><div class="rowbuttons">${btn('🏳️ フォールド',`decide:${who}:fold`,'gold')}${btn('🔥 コンティニュー',`decide:${who}:continue`,'green')}</div>`})()}</section>`}else if(phase==='error'){body+=`<section class="panel"><h2>⚠️ 処理エラー</h2><p>カード枚数またはカードの重複に異常を検出しました。対戦を終了して再開してください。</p></section>`}else if(phase==='roundover'||phase==='gameover'){body+=`<section class="panel center result-panel"><div class="gem">${phase==='gameover'?'🏆':'💎'}</div><h2>${phase==='gameover'?'最終結果':'ラウンド終了'}</h2><p class="result-scores">${p[0].score} <span>—</span> ${p[1].score}</p>${phase==='gameover'?`<h2>${p[0].score===p[1].score?'引き分け！':`${p[0].score>p[1].score?p[0].name:p[1].name} の勝利！`}</h2>`:''}${btn(phase==='gameover'?'もう一度遊ぶ':'次のラウンドへ',phase==='gameover'?'again':'round','green')}</section>${hands}`}layout(body+tail)}function dispatch(act){if(act==='title'&&!g){title();return}if(act==='help'&&!g){help();return}if((act==='newcpu'||act==='newpvp')&&!g){make(act==='newcpu'?'cpu':'pvp');return}if(act==='confirmtitle'&&g){title();return}if(act==='again'&&g&&g.phase==='gameover'){make(g.mode);return}if(act==='round'&&g&&g.phase==='roundover'){startRound();return}if(act==='pass'&&g&&g.phase==='pass'){g.phase='choose';render();return}if(act==='next'&&g&&g.phase==='reveal'){processNext();return}if(!g)return;if(act==='discard'){if(g.phase==='discard'&&g.ctx.task&&ui.pick)doDiscard(g.ctx.task.who,ui.pick);ui.pick=null;return}if(act==='stealchoose'){if(g.phase!=='stealpick'||!g.ctx.task||!ui.pick||!g.players[g.ctx.task.other].hand.some(c=>c.id===ui.pick))return;g.ctx.stolen=ui.pick;ui.pick=null;g.phase='stealgive';render();return}if(act==='stealgive'){if(g.phase==='stealgive'&&g.ctx.task&&ui.pick&&g.players[g.ctx.task.who].hand.some(c=>c.id===ui.pick))doSteal(g.ctx.task.who,g.ctx.stolen,ui.pick);ui.pick=null;return}if(act==='decisionpass'&&g&&g.phase==='decisionPass'){g.phase='meld';render();return}if(act.startsWith('choose:')){let [,i,a]=act.split(':');choose(+i,a);return}if(act.startsWith('decide:')){let [,i,d]=act.split(':');decide(+i,d);return}}if(typeof globalThis.__gemstoTestHook==='function')globalThis.__gemstoTestHook({make,cpuAction,cpuFold,allowed,choose,reveal,processNext,cardIntegrity,evalHand,dispatch,getGame:()=>g,setGame:x=>{g=x},setPick:x=>{ui.pick=x}});title();})();
 </script></body></html>
